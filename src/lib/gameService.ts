@@ -1,59 +1,110 @@
 import { db } from './firebase';
-import {
-  ref,
-  set,
-  get,
-  update,
-  onValue,
-} from 'firebase/database';
+import { ref, set, get, update, onValue, remove } from 'firebase/database';
 import { generateAllBoards } from './bingo';
 
-export interface GameState {
+// ── 타입 정의
+export interface EventGame {
   status: 'waiting' | 'playing' | 'finished';
   boards: number[][][];
   winner: string | null;
   winnerBoardIndex: number | null;
   startedAt: number | null;
   updatedAt: number | null;
+  eventCode: string;
 }
 
 export interface Participant {
   boardIndex: number;
   joinedAt: number;
   sessionId: string;
-  markedNumbers: number[];   // 각 사용자가 직접 표시한 숫자
+  markedNumbers: number[];
 }
 
-// ── 게임 초기화
-export async function initializeGame(): Promise<void> {
+export interface ActivationCode {
+  code: string;
+  used: boolean;
+  createdAt: number;
+}
+
+// ══════════════════════════════════════
+// 슈퍼어드민
+// ══════════════════════════════════════
+
+// 활성화 코드 100개 생성
+export async function generateActivationCodes(): Promise<string[]> {
+  const existing = await get(ref(db, 'activationCodes'));
+  if (existing.exists()) {
+    if (!confirm('기존 코드가 있습니다. 모두 초기화하고 새로 생성할까요?')) return [];
+  }
+
+  const codes: Record<string, ActivationCode> = {};
+  const generated: string[] = [];
+
+  while (generated.length < 100) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    if (!generated.includes(code)) {
+      generated.push(code);
+      codes[code] = { code, used: false, createdAt: Date.now() };
+    }
+  }
+
+  await set(ref(db, 'activationCodes'), codes);
+  return generated;
+}
+
+// 활성화 코드 목록 구독
+export function subscribeActivationCodes(
+  callback: (codes: Record<string, ActivationCode> | null) => void
+): () => void {
+  return onValue(ref(db, 'activationCodes'), (snap) => callback(snap.val()));
+}
+
+// 코드 유효성 확인
+export async function validateCode(code: string): Promise<'super' | 'event' | 'invalid'> {
+  const SUPER_ADMIN_CODE = process.env.NEXT_PUBLIC_SUPER_ADMIN_CODE || 'SUPERADMIN';
+  if (code === SUPER_ADMIN_CODE) return 'super';
+
+  const snap = await get(ref(db, `activationCodes/${code}`));
+  if (snap.exists()) return 'event';
+  return 'invalid';
+}
+
+// ══════════════════════════════════════
+// 이벤트 게임
+// ══════════════════════════════════════
+
+// 이벤트 초기화
+export async function initializeEvent(eventCode: string): Promise<void> {
   const boards = generateAllBoards();
-  const gameState: GameState = {
+  const game: EventGame = {
     status: 'waiting',
     boards,
     winner: null,
     winnerBoardIndex: null,
     startedAt: null,
     updatedAt: Date.now(),
+    eventCode,
   };
-  await set(ref(db, 'game'), gameState);
-  await set(ref(db, 'participants'), null);
+  await set(ref(db, `events/${eventCode}`), game);
+  await set(ref(db, `participants/${eventCode}`), null);
 }
 
-// ── 게임 시작
-export async function startGame(): Promise<void> {
-  await update(ref(db, 'game'), {
+// 게임 시작
+export async function startEvent(eventCode: string): Promise<void> {
+  await update(ref(db, `events/${eventCode}`), {
     status: 'playing',
     startedAt: Date.now(),
     updatedAt: Date.now(),
   });
 }
 
-// ── 우승자 등록 (관객이 FINISH 버튼 눌렀을 때)
-export async function setWinner(
+// 우승자 등록
+export async function setEventWinner(
+  eventCode: string,
   sessionId: string,
   boardIndex: number
 ): Promise<void> {
-  await update(ref(db, 'game'), {
+  await update(ref(db, `events/${eventCode}`), {
     status: 'finished',
     winner: sessionId,
     winnerBoardIndex: boardIndex,
@@ -61,88 +112,101 @@ export async function setWinner(
   });
 }
 
-// ── 관객 참가 — 빙고판 배정
-export async function joinGame(sessionId: string): Promise<number | null> {
-  const [gameSnap, participantsSnap] = await Promise.all([
-    get(ref(db, 'game')),
-    get(ref(db, 'participants')),
-  ]);
+// 이벤트 게임 상태 구독
+export function subscribeEventGame(
+  eventCode: string,
+  callback: (game: EventGame | null) => void
+): () => void {
+  return onValue(ref(db, `events/${eventCode}`), (snap) => callback(snap.val()));
+}
 
-  const game = gameSnap.val() as GameState;
-  if (!game) return null;
+// ══════════════════════════════════════
+// 참가자
+// ══════════════════════════════════════
 
-  const participants = participantsSnap.val() as Record<string, Participant> | null;
+// 빙고판 선택 (관객이 직접)
+export async function selectBoard(
+  eventCode: string,
+  sessionId: string,
+  boardIndex: number
+): Promise<boolean> {
+  const snap = await get(ref(db, `participants/${eventCode}`));
+  const participants = snap.val() as Record<string, Participant> | null;
 
-  // 재접속: 기존 자리 복원
-  if (participants?.[sessionId]) return participants[sessionId].boardIndex;
+  // 이미 선택된 판인지 확인
+  if (participants) {
+    const taken = Object.values(participants).some(p => p.boardIndex === boardIndex);
+    if (taken) return false;
 
-  const usedIndices = new Set(
-    participants ? Object.values(participants).map((p) => p.boardIndex) : []
-  );
-
-  let boardIndex = -1;
-  for (let i = 0; i < 100; i++) {
-    if (!usedIndices.has(i)) { boardIndex = i; break; }
+    // 본인이 이미 다른 판 선택했는지
+    if (participants[sessionId]) {
+      // 기존 선택 해제 후 새로 선택
+      await remove(ref(db, `participants/${eventCode}/${sessionId}`));
+    }
   }
-  if (boardIndex === -1) return null;
 
-  await set(ref(db, `participants/${sessionId}`), {
+  await set(ref(db, `participants/${eventCode}/${sessionId}`), {
     boardIndex,
     sessionId,
     joinedAt: Date.now(),
     markedNumbers: [],
   } as Participant);
 
-  return boardIndex;
+  return true;
 }
 
-// ── 숫자 토글 (관객이 직접 마킹/마킹 취소)
+// 숫자 토글
 export async function toggleMark(
+  eventCode: string,
   sessionId: string,
   number: number
 ): Promise<void> {
-  const snap = await get(ref(db, `participants/${sessionId}/markedNumbers`));
+  const snap = await get(ref(db, `participants/${eventCode}/${sessionId}/markedNumbers`));
   const current: number[] = snap.val() ?? [];
   const updated = current.includes(number)
-    ? current.filter((n) => n !== number)
+    ? current.filter(n => n !== number)
     : [...current, number];
-  await set(ref(db, `participants/${sessionId}/markedNumbers`), updated);
+  await set(ref(db, `participants/${eventCode}/${sessionId}/markedNumbers`), updated);
 }
 
-// ── 내 마킹 목록 실시간 구독
+// 내 마킹 구독
 export function subscribeMyMarks(
+  eventCode: string,
   sessionId: string,
   callback: (marks: number[]) => void
 ): () => void {
-  return onValue(ref(db, `participants/${sessionId}/markedNumbers`), (snap) => {
+  return onValue(ref(db, `participants/${eventCode}/${sessionId}/markedNumbers`), (snap) => {
     callback(snap.val() ?? []);
   });
 }
 
-// ── 참가자 수 실시간 구독
+// 참가자 목록 구독
+export function subscribeParticipants(
+  eventCode: string,
+  callback: (p: Record<string, Participant> | null) => void
+): () => void {
+  return onValue(ref(db, `participants/${eventCode}`), (snap) => callback(snap.val()));
+}
+
+// 참가자 수 구독
 export function subscribeParticipantCount(
+  eventCode: string,
   callback: (count: number) => void
 ): () => void {
-  return onValue(ref(db, 'participants'), (snap) => {
+  return onValue(ref(db, `participants/${eventCode}`), (snap) => {
     const data = snap.val();
     callback(data ? Object.keys(data).length : 0);
   });
 }
 
-// ── 게임 상태 실시간 구독
-export function subscribeGameState(
-  callback: (state: GameState | null) => void
+// 선택된 빙고판 인덱스 목록 구독 (관객 선택 화면용 실시간)
+export function subscribeTakenBoards(
+  eventCode: string,
+  callback: (taken: Set<number>) => void
 ): () => void {
-  return onValue(ref(db, 'game'), (snap) => {
-    callback(snap.val() as GameState | null);
-  });
-}
-
-// ── 전체 참가자 목록 실시간 구독 (관리자용)
-export function subscribeParticipants(
-  callback: (participants: Record<string, Participant> | null) => void
-): () => void {
-  return onValue(ref(db, 'participants'), (snap) => {
-    callback(snap.val());
+  return onValue(ref(db, `participants/${eventCode}`), (snap) => {
+    const data = snap.val() as Record<string, Participant> | null;
+    const taken = new Set(data ? Object.values(data).map(p => p.boardIndex) : []);
+    callback(taken);
   });
 }
