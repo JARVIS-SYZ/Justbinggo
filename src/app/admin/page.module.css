@@ -1,0 +1,147 @@
+.container { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.headerLeft  { display: flex; align-items: center; gap: 12px; }
+.headerRight { display: flex; align-items: center; gap: 12px; }
+.logo {
+  font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900;
+  color: var(--accent-blue); letter-spacing: 0.2em;
+  text-shadow: 0 0 10px rgba(59,130,246,0.5);
+}
+.adminBadge {
+  background: rgba(59,130,246,0.15); border: 1px solid var(--accent-blue);
+  color: var(--accent-blue); padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; letter-spacing: 0.15em;
+}
+.statusBadge {
+  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid;
+}
+.statusWaiting  { background: rgba(74,96,128,0.2); border-color: var(--text-muted); color: var(--text-muted); }
+.statusPlaying  { background: rgba(16,185,129,0.15); border-color: var(--accent-green); color: var(--accent-green); }
+.statusFinished { background: rgba(245,158,11,0.15); border-color: var(--accent-gold); color: var(--accent-gold); }
+.participantBadge {
+  padding: 6px 14px; border-radius: 20px; font-size: 13px;
+  background: rgba(6,182,212,0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
+}
+
+/* ── Layout */
+.mainGrid {
+  display: grid; grid-template-columns: 300px 1fr;
+  gap: 20px; padding: 20px; flex: 1;
+}
+@media (max-width: 860px) { .mainGrid { grid-template-columns: 1fr; } }
+
+.leftPanel  { display: flex; flex-direction: column; gap: 16px; }
+.rightPanel { display: flex; flex-direction: column; min-height: 0; }
+
+/* ── Card */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px;
+}
+.cardTitle {
+  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+  letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;
+  margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+}
+.calledCount { font-size: 12px; color: var(--accent-blue); font-weight: 700; }
+
+.controlBtns { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Winner */
+.winnerCard {
+  background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+  border: 1px solid var(--accent-gold); border-radius: 10px; padding: 20px;
+  text-align: center; animation: bingo-flash 2s ease infinite;
+}
+.winnerEmoji { font-size: 32px; display: block; margin-bottom: 6px; }
+.winnerCard h3 { font-family: 'Orbitron', sans-serif; font-size: 15px; color: var(--accent-gold); margin-bottom: 4px; }
+.winnerBoardNum { font-size: 13px; color: var(--accent-gold); font-weight: 700; margin-bottom: 2px; }
+.winnerSession  { font-size: 10px; color: var(--text-muted); font-family: monospace; margin-bottom: 12px; }
+
+.winnerMiniBoard { display: flex; flex-direction: column; gap: 2px; }
+.winnerRow { display: flex; gap: 2px; justify-content: center; }
+.winnerCell {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+  background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-muted);
+}
+.winnerMarked { background: rgba(245,158,11,0.25); border-color: var(--accent-gold); color: var(--accent-gold); }
+
+/* ── QR */
+.qrWrapper { display: flex; justify-content: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 12px; }
+.qrImage   { width: 150px; height: 150px; border-radius: 4px; }
+.urlBox    { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; overflow: hidden; }
+.urlText   { font-size: 11px; color: var(--accent-cyan); word-break: break-all; font-family: monospace; }
+
+/* ── Board list */
+.boardList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  padding-right: 4px;
+  padding-bottom: 8px;
+  flex: 1;
+}
+
+/* scrollbar */
+.boardList::-webkit-scrollbar { width: 5px; }
+.boardList::-webkit-scrollbar-track { background: transparent; }
+.boardList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.emptyMsg { font-size: 13px; color: var(--text-muted); text-align: center; padding: 40px 0; }
+
+/* ── Individual board card */
+.boardCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  transition: border-color 0.2s;
+}
+.boardCardEmpty  { opacity: 0.45; }
+.boardCardWinner {
+  border-color: var(--accent-gold) !important;
+  background: rgba(245,158,11,0.06);
+  box-shadow: 0 0 12px rgba(245,158,11,0.2);
+}
+
+.boardCardHeader {
+  display: flex; align-items: center; gap: 5px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.boardCardNum { font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.boardCardEmpty2 { font-size: 10px; color: var(--text-muted); }
+.boardCardActive { font-size: 10px; color: var(--accent-green); }
+.boardCardBingo  { font-size: 10px; color: var(--accent-gold); background: rgba(245,158,11,0.15); padding: 1px 5px; border-radius: 3px; }
+.boardCardWinBadge { font-size: 10px; color: var(--accent-gold); font-weight: 700; }
+
+/* ── Mini grid inside board card */
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+}
+.miniCell {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+  border-radius: 3px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.miniMarked {
+  background: var(--called);
+  border-color: var(--border-bright);
+  color: var(--called-text);
+}
+.miniEmpty { opacity: 0.5; }
