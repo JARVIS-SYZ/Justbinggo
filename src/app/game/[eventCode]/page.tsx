@@ -190,15 +190,11 @@ export default function GameEventPage() {
   // ── 게임 플레이
   return (
     <div className={styles.container}>
-      {iLost && <div className={styles.gameOverBanner}>🏆 Another player completed BINGO</div>}
-
       <header className={styles.header}>
         <div className={styles.logoSmall}>⬡ BINGO</div>
         <div className={styles.gameInfo}>
           <span className={styles.boardNum}>#{(boardIndex ?? 0) + 1}</span>
-          <span className={styles.bingoCount}>
-            {completedLines.length > 0 ? `🎉 ${completedLines.length} Line${completedLines.length > 1 ? 's' : ''}!` : '0 Lines'}
-          </span>
+
         </div>
       </header>
 
