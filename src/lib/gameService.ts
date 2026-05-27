@@ -68,6 +68,26 @@ export async function addActivationCodes(
   };
 }
 
+// 활성화 코드 리셋 (used → false, activatedAt 제거)
+export async function resetActivationCode(code: string): Promise<void> {
+  await update(ref(db, `activationCodes/${code}`), {
+    used: false,
+    activatedAt: null,
+  });
+}
+
+// 전체 활성화 코드 리셋
+export async function resetAllActivationCodes(): Promise<void> {
+  const snap = await get(ref(db, 'activationCodes'));
+  if (!snap.exists()) return;
+  const codes = snap.val() as Record<string, ActivationCode>;
+  for (const code of Object.keys(codes)) {
+    if (codes[code].used) {
+      await update(ref(db, `activationCodes/${code}`), { used: false, activatedAt: null });
+    }
+  }
+}
+
 // 코드 개별 삭제
 export async function deleteActivationCode(code: string): Promise<void> {
   await set(ref(db, `activationCodes/${code}`), null);

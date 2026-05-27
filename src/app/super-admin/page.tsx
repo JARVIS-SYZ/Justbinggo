@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   addActivationCodes, deleteActivationCode, deleteAllActivationCodes,
+  resetActivationCode, resetAllActivationCodes,
   subscribeActivationCodes, ActivationCode,
 } from '@/lib/gameService';
 import styles from './page.module.css';
@@ -38,6 +39,16 @@ export default function SuperAdminPage() {
     setAddResult(result);
     setInputText('');
     setAdding(false);
+  };
+
+  const handleResetOne = async (code: string) => {
+    if (!confirm(`"${code}" 코드를 미사용으로 리셋할까요?`)) return;
+    await resetActivationCode(code);
+  };
+
+  const handleResetAll = async () => {
+    if (!confirm('사용된 코드를 모두 미사용으로 리셋할까요?')) return;
+    await resetAllActivationCodes();
   };
 
   const handleDeleteOne = async (code: string) => {
@@ -100,6 +111,11 @@ export default function SuperAdminPage() {
             <button className={styles.addBtn} onClick={() => { setShowAddModal(true); setAddResult(null); }}>
               + 코드 추가
             </button>
+            {usedCount > 0 && (
+              <button className={styles.resetAllBtn} onClick={handleResetAll}>
+                ↺ 전체 리셋
+              </button>
+            )}
             {codeList.length > 0 && (
               <button className={styles.deleteAllBtn} onClick={handleDeleteAll}>
                 전체 삭제
@@ -134,6 +150,11 @@ export default function SuperAdminPage() {
                   <button className={styles.actionBtnPrimary} onClick={() => router.push(`/admin/${c.code}`)}>
                     관리
                   </button>
+                  {c.used && (
+                    <button className={styles.actionBtnReset} onClick={() => handleResetOne(c.code)}>
+                      리셋
+                    </button>
+                  )}
                   <button className={styles.actionBtnDelete} onClick={() => handleDeleteOne(c.code)}>
                     삭제
                   </button>

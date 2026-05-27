@@ -23,6 +23,8 @@
 .toolbarRight { display:flex; gap:8px; }
 .addBtn { padding:8px 18px; border-radius:6px; background:var(--accent-blue); border:none; color:white; font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.05em; }
 .addBtn:hover { background:#2563eb; box-shadow:var(--glow-blue); }
+.resetAllBtn { padding:8px 18px; border-radius:6px; background:transparent; border:1px solid var(--accent-cyan); color:var(--accent-cyan); font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.resetAllBtn:hover { background:rgba(6,182,212,0.1); }
 .deleteAllBtn { padding:8px 18px; border-radius:6px; background:transparent; border:1px solid var(--accent-red); color:var(--accent-red); font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
 .deleteAllBtn:hover { background:rgba(239,68,68,0.1); }
 
@@ -46,6 +48,8 @@
 .actionBtn:hover { border-color:var(--border-bright); color:var(--text-primary); }
 .actionBtnPrimary { flex:1; min-width:40px; padding:6px 0; background:rgba(59,130,246,0.15); border:1px solid var(--accent-blue); border-radius:4px; color:var(--accent-blue); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:'Rajdhani',sans-serif; font-weight:600; }
 .actionBtnPrimary:hover { background:rgba(59,130,246,0.25); }
+.actionBtnReset { flex:1; min-width:40px; padding:6px 0; background:transparent; border:1px solid rgba(6,182,212,0.4); border-radius:4px; color:var(--accent-cyan); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:'Rajdhani',sans-serif; font-weight:600; }
+.actionBtnReset:hover { background:rgba(6,182,212,0.1); border-color:var(--accent-cyan); }
 .actionBtnDelete { flex:1; min-width:40px; padding:6px 0; background:transparent; border:1px solid rgba(239,68,68,0.3); border-radius:4px; color:rgba(239,68,68,0.6); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:'Rajdhani',sans-serif; font-weight:600; }
 .actionBtnDelete:hover { border-color:var(--accent-red); color:var(--accent-red); background:rgba(239,68,68,0.08); }
 
