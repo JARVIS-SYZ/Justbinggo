@@ -57,8 +57,7 @@
 .boardNum { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--text-muted); background:var(--bg-secondary); padding:3px 8px; border-radius:4px; }
 .bingoCount { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--accent-gold); font-weight:700; }
 
-.statusBar { background:rgba(74,96,128,0.2); border-bottom:1px solid var(--border); padding:8px 20px; font-size:13px; color:var(--text-muted); text-align:center; flex-shrink:0; }
-.hintBar { background:rgba(59,130,246,0.08); border-bottom:1px solid var(--border); padding:6px 20px; font-size:12px; color:var(--text-muted); text-align:center; flex-shrink:0; }
+
 
 /* 빙고판 영역 - flex-shrink:0으로 크기 고정 */
 .boardWrapper { padding:12px 14px 0; flex-shrink:0; }
@@ -94,6 +93,42 @@
 .finishActive:hover { transform:translateY(-2px); }
 .finishActive:disabled { animation:none; opacity:0.7; }
 .finishHint { font-size:11px; color:var(--text-muted); }
+.finishPlaying {
+  background: var(--bg-secondary);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  cursor: not-allowed;
+  animation: none;
+  position: relative;
+  overflow: hidden;
+}
+.finishPlaying::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0deg,
+    var(--accent-blue) 60deg,
+    var(--accent-cyan) 120deg,
+    transparent 180deg
+  );
+  animation: rotate-border 2s linear infinite;
+  z-index: -1;
+}
+.finishPlaying::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 9px;
+  background: var(--bg-secondary);
+  z-index: -1;
+}
+@keyframes rotate-border {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 .finishDone { background:#1a2a1a !important; border-color:#2a4a2a !important; color:#4a6a4a !important; cursor:not-allowed !important; animation:none !important; box-shadow:none !important; opacity:0.7; }
 
 .gameOverBanner { background:rgba(239,68,68,0.1); border-bottom:1px solid var(--accent-red); padding:12px 20px; font-size:14px; color:var(--accent-red); text-align:center; font-weight:600; flex-shrink:0; }
