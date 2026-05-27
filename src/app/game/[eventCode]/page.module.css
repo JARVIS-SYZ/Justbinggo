@@ -94,6 +94,7 @@
 .finishActive:hover { transform:translateY(-2px); }
 .finishActive:disabled { animation:none; opacity:0.7; }
 .finishHint { font-size:11px; color:var(--text-muted); }
+.finishDone { background:#1a2a1a !important; border-color:#2a4a2a !important; color:#4a6a4a !important; cursor:not-allowed !important; animation:none !important; box-shadow:none !important; opacity:0.7; }
 
 .gameOverBanner { background:rgba(239,68,68,0.1); border-bottom:1px solid var(--accent-red); padding:12px 20px; font-size:14px; color:var(--accent-red); text-align:center; font-weight:600; flex-shrink:0; }
 

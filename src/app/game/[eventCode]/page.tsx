@@ -175,8 +175,8 @@ export default function GameEventPage() {
         </div>
       </header>
 
-      {game?.status === 'waiting' && <div className={styles.statusBar}>⏳ 게임 시작을 기다리고 있습니다...</div>}
-      {isPlaying && !finished && <div className={styles.hintBar}>숫자를 눌러 마킹 · 다시 누르면 취소</div>}
+      {game?.status === 'waiting' && <div className={styles.statusBar}>⏳ 대기 중</div>}
+      {isPlaying && !finished && <div className={styles.hintBar}>🎯 진행 중 &nbsp;·&nbsp; 숫자를 눌러 마킹 · 다시 누르면 취소</div>}
 
       <div className={styles.boardWrapper}>
         <div className={styles.boardHeader}>
@@ -231,11 +231,11 @@ export default function GameEventPage() {
 
       <div className={styles.finishArea}>
         <button
-          className={`${styles.finishBtn} ${canFinish ? styles.finishActive : ''}`}
+          className={`${styles.finishBtn} ${canFinish ? styles.finishActive : ''} ${finished ? styles.finishDone : ''}`}
           onClick={handleFinish}
           disabled={!canFinish || finishing}
         >
-          {finishing ? '처리 중...' : canFinish ? '🎉 BINGO! FINISH' : 'FINISH'}
+          {finished ? '완료' : canFinish ? '🎉 FINISH' : '대기 중'}
         </button>
         {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>1줄 완성 시 활성화됩니다</p>}
       </div>
