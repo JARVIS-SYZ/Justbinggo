@@ -26,11 +26,15 @@ export default function AdminEventPage() {
     const ok = sessionStorage.getItem(`bingo_admin_${eventCode}`);
     if (ok !== 'true') { router.push('/'); return; }
 
-    const url = `${window.location.origin}/game/${eventCode}`;
-    setGameUrl(url);
-    QRCode.toDataURL(url, { width: 200, margin: 2, color: { dark: '#f0f6ff', light: '#0d1421' } }).then(setQrDataUrl);
-
-    const u1 = subscribeEventGame(eventCode, setGame);
+    const u1 = subscribeEventGame(eventCode, (g) => {
+      setGame(g);
+      // roomToken 기반 QR 업데이트
+      if (g?.roomToken) {
+        const url = `${window.location.origin}/game/${g.roomToken}`;
+        setGameUrl(url);
+        QRCode.toDataURL(url, { width: 200, margin: 2, color: { dark: '#f0f6ff', light: '#0d1421' } }).then(setQrDataUrl);
+      }
+    });
     const u2 = subscribeParticipants(eventCode, setParticipants);
     const u3 = subscribeParticipantCount(eventCode, setCount);
     return () => { u1(); u2(); u3(); };

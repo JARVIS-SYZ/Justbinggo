@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import {
   subscribeEventGame, subscribeTakenBoards, subscribeMyMarks,
-  selectBoard, setEventWinner, toggleMark, EventGame,
+  selectBoard, setEventWinner, toggleMark, subscribeEventCodeByToken, EventGame,
 } from '@/lib/gameService';
 import { findCompletedLines, generateSessionId } from '@/lib/bingo';
 import styles from './page.module.css';
@@ -16,6 +16,8 @@ export default function GameEventPage() {
   const eventCode = (params.eventCode as string).toUpperCase();
 
   const [sessionId, setSessionId]         = useState('');
+  const [actualEventCode, setActualEventCode] = useState('');
+  const [tokenInvalid, setTokenInvalid]   = useState(false);
   const [game, setGame]                   = useState<EventGame | null>(null);
   const [takenBoards, setTakenBoards]     = useState<Set<number>>(new Set());
   const [phase, setPhase]                 = useState<Phase>('select');
@@ -27,30 +29,41 @@ export default function GameEventPage() {
   const [finished, setFinished]           = useState(false); // FINISH 누른 후 연출용
   const winnerReported = useRef(false);
 
+  // roomToken → actualEventCode 변환
+  useEffect(() => {
+    const unsub = subscribeEventCodeByToken(eventCode, (code) => {
+      if (code) setActualEventCode(code);
+      else setTokenInvalid(true);
+    });
+    return unsub;
+  }, [eventCode, actualEventCode]);
+
   // 세션 초기화
   useEffect(() => {
-    let sid = localStorage.getItem(`bingo_session_${eventCode}`);
-    if (!sid) { sid = generateSessionId(); localStorage.setItem(`bingo_session_${eventCode}`, sid); }
+    if (!actualEventCode) return;
+    let sid = localStorage.getItem(`bingo_session_${actualEventCode}`);
+    if (!sid) { sid = generateSessionId(); localStorage.setItem(`bingo_session_${actualEventCode}`, sid); }
     setSessionId(sid);
-    const saved = localStorage.getItem(`bingo_board_${eventCode}`);
+    const saved = localStorage.getItem(`bingo_board_${actualEventCode}`);
     if (saved !== null) { setBoardIndex(Number(saved)); setPhase('play'); }
   }, [eventCode]);
 
   // 게임 상태 구독
   useEffect(() => {
-    const u1 = subscribeEventGame(eventCode, (g) => {
+    if (!actualEventCode) return;
+    const u1 = subscribeEventGame(actualEventCode, (g) => {
       setGame(g);
       if (g?.status === 'waiting') {
-        localStorage.removeItem(`bingo_board_${eventCode}`);
+        localStorage.removeItem(`bingo_board_${actualEventCode}`);
         setBoardIndex(null); setPhase('select');
         setMarkedNumbers([]); setIsWinner(false);
         setFinished(false); winnerReported.current = false;
       }
       if (g?.winner === sessionId) setIsWinner(true);
     });
-    const u2 = subscribeTakenBoards(eventCode, setTakenBoards);
+    const u2 = subscribeTakenBoards(actualEventCode, setTakenBoards);
     return () => { u1(); u2(); };
-  }, [eventCode, sessionId]);
+  }, [actualEventCode, sessionId]);
 
   useEffect(() => {
     if (game?.boards && boardIndex !== null) setBoard(game.boards[boardIndex]);
@@ -58,15 +71,15 @@ export default function GameEventPage() {
 
   useEffect(() => {
     if (!sessionId || boardIndex === null) return;
-    return subscribeMyMarks(eventCode, sessionId, setMarkedNumbers);
-  }, [eventCode, sessionId, boardIndex]);
+    return subscribeMyMarks(actualEventCode, sessionId, setMarkedNumbers);
+  }, [actualEventCode, sessionId, boardIndex]);
 
   const handleSelectBoard = async (idx: number) => {
     if (takenBoards.has(idx)) return;
-    const ok = await selectBoard(eventCode, sessionId, idx);
+    const ok = await selectBoard(actualEventCode, sessionId, idx);
     if (ok) {
       setBoardIndex(idx);
-      localStorage.setItem(`bingo_board_${eventCode}`, String(idx));
+      localStorage.setItem(`bingo_board_${actualEventCode}`, String(idx));
       setPhase('play');
     } else {
       alert('이미 다른 사람이 선택한 빙고판입니다.');
@@ -75,7 +88,7 @@ export default function GameEventPage() {
 
   const handleCellClick = async (num: number) => {
     if (!game || game.status !== 'playing' || game.winner || finished) return;
-    await toggleMark(eventCode, sessionId, num);
+    await toggleMark(actualEventCode, sessionId, num);
   };
 
   const handleFinish = async () => {
@@ -83,7 +96,7 @@ export default function GameEventPage() {
     winnerReported.current = true;
     setFinishing(true);
     setFinished(true);
-    await setEventWinner(eventCode, sessionId, boardIndex!);
+    await setEventWinner(actualEventCode, sessionId, boardIndex!);
   };
 
   const isPlaying      = game?.status === 'playing';
@@ -96,8 +109,17 @@ export default function GameEventPage() {
   // 완성된 줄의 방향/좌표 계산 (선 그리기용)
   const completedLineCoords = board.length ? getCompletedLineCoords(board, markedNumbers) : [];
 
+  // ── 토큰 무효
+  if (tokenInvalid) return (
+    <div className={styles.waiting}>
+      <div className={styles.waitingIcon}>⚠</div>
+      <h1>유효하지 않은 링크입니다</h1>
+      <p>올바른 QR코드로 다시 접속해주세요.</p>
+    </div>
+  );
+
   // ── 대기
-  if (!game) return (
+  if (!actualEventCode || !game) return (
     <div className={styles.waiting}>
       <div className={styles.waitingIcon}>⬡</div>
       <h1>연결 중...</h1>

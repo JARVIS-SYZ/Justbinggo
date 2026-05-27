@@ -11,6 +11,7 @@ export interface EventGame {
   startedAt: number | null;
   updatedAt: number | null;
   eventCode: string;
+  roomToken?: string;
 }
 
 export interface Participant {
@@ -74,7 +75,28 @@ export async function validateCode(code: string): Promise<'super' | 'event' | 'i
 // ══════════════════════════════════════
 
 // 이벤트 초기화
-export async function initializeEvent(eventCode: string): Promise<void> {
+// ── roomToken 생성
+function generateRoomToken(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+// ── roomToken → eventCode 실시간 구독
+export function subscribeEventCodeByToken(
+  token: string,
+  callback: (eventCode: string | null) => void
+): () => void {
+  return onValue(ref(db, `roomTokens/${token}`), (snap) => {
+    callback(snap.exists() ? (snap.val() as string) : null);
+  });
+}
+
+export async function initializeEvent(eventCode: string): Promise<string> {
+  // 기존 토큰 제거
+  const oldSnap = await get(ref(db, `events/${eventCode}/roomToken`));
+  if (oldSnap.exists()) {
+    await set(ref(db, `roomTokens/${oldSnap.val()}`), null);
+  }
+  const token = generateRoomToken();
   const boards = generateAllBoards();
   const game: EventGame = {
     status: 'waiting',
@@ -84,9 +106,12 @@ export async function initializeEvent(eventCode: string): Promise<void> {
     startedAt: null,
     updatedAt: Date.now(),
     eventCode,
+    roomToken: token,
   };
   await set(ref(db, `events/${eventCode}`), game);
   await set(ref(db, `participants/${eventCode}`), null);
+  await set(ref(db, `roomTokens/${token}`), eventCode);
+  return token;
 }
 
 // 게임 시작
