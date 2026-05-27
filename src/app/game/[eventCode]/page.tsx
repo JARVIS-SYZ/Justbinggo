@@ -87,7 +87,7 @@ export default function GameEventPage() {
       localStorage.setItem(`bingo_board_${actualEventCode}`, String(idx));
       setPhase('play');
     } else {
-      alert('이미 다른 사람이 선택한 빙고판입니다.');
+      alert('This card is already taken. Please choose another.');
     }
   };
 
@@ -118,8 +118,8 @@ export default function GameEventPage() {
   if (tokenInvalid) return (
     <div className={styles.waiting}>
       <div className={styles.waitingIcon}>⚠</div>
-      <h1>유효하지 않은 링크입니다</h1>
-      <p>올바른 QR코드로 다시 접속해주세요.</p>
+      <h1>Invalid Link</h1>
+      <p>Please scan the correct QR code.</p>
     </div>
   );
 
@@ -127,8 +127,8 @@ export default function GameEventPage() {
   if (!actualEventCode || !game) return (
     <div className={styles.waiting}>
       <div className={styles.waitingIcon}>⬡</div>
-      <h1>연결 중...</h1>
-      <p>잠시만 기다려주세요.</p>
+      <h1>Connecting...</h1>
+      <p>Please wait a moment.</p>
     </div>
   );
 
@@ -141,10 +141,10 @@ export default function GameEventPage() {
           <div className={styles.eventCodeBadge}>{eventCode}</div>
         </header>
         <div className={styles.selectInfo}>
-          <h2 className={styles.selectTitle}>빙고판을 선택하세요</h2>
+          <h2 className={styles.selectTitle}>Select Your Bingo Card</h2>
           <p className={styles.selectSubtitle}>
-            원하는 빙고판을 눌러 선택하세요 &nbsp;·&nbsp;
-            <span className={styles.takenLabel}>■ 선택 불가</span>
+            Tap a card to select it &nbsp;·&nbsp;
+            <span className={styles.takenLabel}>■ Taken</span>
           </p>
         </div>
 
@@ -160,7 +160,7 @@ export default function GameEventPage() {
               >
                 <div className={styles.boardCardTop}>
                   <span className={styles.boardCardNum}>#{idx + 1}</span>
-                  {taken && <span className={styles.takenBadge}>선택됨</span>}
+                  {taken && <span className={styles.takenBadge}>Taken</span>}
                 </div>
                 {/* BINGO 헤더 */}
                 <div className={styles.cardBingoHeader}>
@@ -176,7 +176,7 @@ export default function GameEventPage() {
                 )}
                 {!taken && (
                   <div className={styles.cardSelectOverlay}>
-                    <span>선택하기</span>
+                    <span>Select</span>
                   </div>
                 )}
               </div>
@@ -190,14 +190,14 @@ export default function GameEventPage() {
   // ── 게임 플레이
   return (
     <div className={styles.container}>
-      {iLost && <div className={styles.gameOverBanner}>🏆 다른 참가자가 빙고를 완성했습니다</div>}
+      {iLost && <div className={styles.gameOverBanner}>🏆 Another player completed BINGO</div>}
 
       <header className={styles.header}>
         <div className={styles.logoSmall}>⬡ BINGO</div>
         <div className={styles.gameInfo}>
           <span className={styles.boardNum}>#{(boardIndex ?? 0) + 1}</span>
           <span className={styles.bingoCount}>
-            {completedLines.length > 0 ? `🎉 ${completedLines.length}줄 완성!` : '0줄'}
+            {completedLines.length > 0 ? `🎉 ${completedLines.length} Line${completedLines.length > 1 ? 's' : ''}!` : '0 Lines'}
           </span>
         </div>
       </header>
@@ -260,9 +260,9 @@ export default function GameEventPage() {
           onClick={handleFinish}
           disabled={!canFinish || finishing}
         >
-          {finished ? '완료' : canFinish ? '🎉 FINISH' : isPlaying ? '진행 중' : '대기 중'}
+          {finished ? 'Done' : canFinish ? '🎉 FINISH' : isPlaying ? 'In Progress' : 'Waiting'}
         </button>
-        {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>1줄 완성 시 활성화됩니다</p>}
+        {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>Complete 1 line to activate</p>}
       </div>
     </div>
   );
