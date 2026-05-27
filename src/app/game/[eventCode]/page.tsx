@@ -6,7 +6,7 @@ import {
   subscribeEventGame, subscribeTakenBoards, subscribeMyMarks,
   selectBoard, setEventWinner, toggleMark, EventGame,
 } from '@/lib/gameService';
-import { findCompletedLines, checkBingo, generateSessionId } from '@/lib/bingo';
+import { findCompletedLines, generateSessionId } from '@/lib/bingo';
 import WinnerOverlay from '@/components/WinnerOverlay';
 import styles from './page.module.css';
 
@@ -16,16 +16,16 @@ export default function GameEventPage() {
   const params    = useParams();
   const eventCode = (params.eventCode as string).toUpperCase();
 
-  const [sessionId, setSessionId]       = useState('');
-  const [game, setGame]                 = useState<EventGame | null>(null);
-  const [takenBoards, setTakenBoards]   = useState<Set<number>>(new Set());
-  const [phase, setPhase]               = useState<Phase>('select');
-  const [boardIndex, setBoardIndex]     = useState<number | null>(null);
-  const [board, setBoard]               = useState<number[][]>([]);
+  const [sessionId, setSessionId]         = useState('');
+  const [game, setGame]                   = useState<EventGame | null>(null);
+  const [takenBoards, setTakenBoards]     = useState<Set<number>>(new Set());
+  const [phase, setPhase]                 = useState<Phase>('select');
+  const [boardIndex, setBoardIndex]       = useState<number | null>(null);
+  const [board, setBoard]                 = useState<number[][]>([]);
   const [markedNumbers, setMarkedNumbers] = useState<number[]>([]);
-  const [isWinner, setIsWinner]         = useState(false);
-  const [finishing, setFinishing]       = useState(false);
-  const [preview, setPreview]           = useState<number | null>(null); // hover preview
+  const [isWinner, setIsWinner]           = useState(false);
+  const [finishing, setFinishing]         = useState(false);
+  const [finished, setFinished]           = useState(false); // FINISH 누른 후 연출용
   const winnerReported = useRef(false);
 
   // 세션 초기화
@@ -33,13 +33,8 @@ export default function GameEventPage() {
     let sid = localStorage.getItem(`bingo_session_${eventCode}`);
     if (!sid) { sid = generateSessionId(); localStorage.setItem(`bingo_session_${eventCode}`, sid); }
     setSessionId(sid);
-
-    // 이미 선택한 판 복원
     const saved = localStorage.getItem(`bingo_board_${eventCode}`);
-    if (saved !== null) {
-      setBoardIndex(Number(saved));
-      setPhase('play');
-    }
+    if (saved !== null) { setBoardIndex(Number(saved)); setPhase('play'); }
   }, [eventCode]);
 
   // 게임 상태 구독
@@ -47,13 +42,10 @@ export default function GameEventPage() {
     const u1 = subscribeEventGame(eventCode, (g) => {
       setGame(g);
       if (g?.status === 'waiting') {
-        // 초기화 시 선택 리셋
         localStorage.removeItem(`bingo_board_${eventCode}`);
-        setBoardIndex(null);
-        setPhase('select');
-        setMarkedNumbers([]);
-        setIsWinner(false);
-        winnerReported.current = false;
+        setBoardIndex(null); setPhase('select');
+        setMarkedNumbers([]); setIsWinner(false);
+        setFinished(false); winnerReported.current = false;
       }
       if (g?.winner === sessionId) setIsWinner(true);
     });
@@ -61,18 +53,15 @@ export default function GameEventPage() {
     return () => { u1(); u2(); };
   }, [eventCode, sessionId]);
 
-  // 보드 업데이트
   useEffect(() => {
     if (game?.boards && boardIndex !== null) setBoard(game.boards[boardIndex]);
   }, [game?.boards, boardIndex]);
 
-  // 마킹 구독
   useEffect(() => {
     if (!sessionId || boardIndex === null) return;
     return subscribeMyMarks(eventCode, sessionId, setMarkedNumbers);
   }, [eventCode, sessionId, boardIndex]);
 
-  // 빙고판 선택
   const handleSelectBoard = async (idx: number) => {
     if (takenBoards.has(idx)) return;
     const ok = await selectBoard(eventCode, sessionId, idx);
@@ -81,32 +70,34 @@ export default function GameEventPage() {
       localStorage.setItem(`bingo_board_${eventCode}`, String(idx));
       setPhase('play');
     } else {
-      alert('이미 다른 사람이 선택한 빙고판입니다. 다른 번호를 선택해주세요.');
+      alert('이미 다른 사람이 선택한 빙고판입니다.');
     }
   };
 
-  // 숫자 토글
   const handleCellClick = async (num: number) => {
-    if (!game || game.status !== 'playing' || game.winner) return;
+    if (!game || game.status !== 'playing' || game.winner || finished) return;
     await toggleMark(eventCode, sessionId, num);
   };
 
-  // FINISH
   const handleFinish = async () => {
     if (!canFinish || finishing || winnerReported.current) return;
     winnerReported.current = true;
     setFinishing(true);
+    setFinished(true);
     await setEventWinner(eventCode, sessionId, boardIndex!);
   };
 
-  const isPlaying  = game?.status === 'playing';
-  const isFinished = game?.status === 'finished';
+  const isPlaying      = game?.status === 'playing';
+  const isFinished     = game?.status === 'finished';
   const completedLines = board.length ? findCompletedLines(board, markedNumbers) : [];
-  const canFinish  = isPlaying && !isFinished && completedLines.length >= 1 && !isWinner;
+  const canFinish      = isPlaying && !isFinished && completedLines.length >= 1 && !isWinner && !finished;
   const completedCells = new Set(completedLines.flat());
-  const iLost      = isFinished && game?.winner !== sessionId;
+  const iLost          = isFinished && game?.winner !== sessionId;
 
-  // ── 대기 화면
+  // 완성된 줄의 방향/좌표 계산 (선 그리기용)
+  const completedLineCoords = board.length ? getCompletedLineCoords(board, markedNumbers) : [];
+
+  // ── 대기
   if (!game) return (
     <div className={styles.waiting}>
       <div className={styles.waitingIcon}>⬡</div>
@@ -115,84 +106,62 @@ export default function GameEventPage() {
     </div>
   );
 
-  // ── 빙고판 선택 화면
+  // ── 빙고판 선택 (카드 목록)
   if (phase === 'select') {
-    const previewBoard = preview !== null && game.boards ? game.boards[preview] : null;
     return (
       <div className={styles.selectContainer}>
         <header className={styles.selectHeader}>
           <div className={styles.logoSmall}>⬡ BINGO</div>
           <div className={styles.eventCodeBadge}>{eventCode}</div>
         </header>
+        <div className={styles.selectInfo}>
+          <h2 className={styles.selectTitle}>빙고판을 선택하세요</h2>
+          <p className={styles.selectSubtitle}>
+            원하는 빙고판을 눌러 선택하세요 &nbsp;·&nbsp;
+            <span className={styles.takenLabel}>■ 선택 불가</span>
+          </p>
+        </div>
 
-        <div className={styles.selectBody}>
-          <div className={styles.selectLeft}>
-            <h2 className={styles.selectTitle}>빙고판을 선택하세요</h2>
-            <p className={styles.selectSubtitle}>
-              번호를 클릭하면 빙고판 미리보기가 표시됩니다.<br/>
-              <span className={styles.takenDot}/>이미 선택된 빙고판은 선택할 수 없습니다.
-            </p>
-
-            <div className={styles.boardNumberGrid}>
-              {Array.from({length:100},(_,i)=>i).map(idx => {
-                const taken = takenBoards.has(idx);
-                const mine  = boardIndex === idx;
-                return (
-                  <button
-                    key={idx}
-                    className={`
-                      ${styles.boardNumBtn}
-                      ${taken  ? styles.boardNumTaken : ''}
-                      ${mine   ? styles.boardNumMine  : ''}
-                      ${preview === idx ? styles.boardNumHover : ''}
-                    `}
-                    onClick={() => handleSelectBoard(idx)}
-                    onMouseEnter={() => setPreview(idx)}
-                    onMouseLeave={() => setPreview(null)}
-                    disabled={taken}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 미리보기 */}
-          <div className={styles.selectRight}>
-            {previewBoard ? (
-              <div className={styles.previewCard}>
-                <div className={styles.previewTitle}>
-                  빙고판 #{(preview ?? 0) + 1}
-                  {takenBoards.has(preview!) && <span className={styles.previewTaken}>선택 불가</span>}
+        <div className={styles.cardGrid}>
+          {Array.from({length:100}, (_,i) => i).map(idx => {
+            const taken = takenBoards.has(idx);
+            const b = game.boards?.[idx];
+            return (
+              <div
+                key={idx}
+                className={`${styles.boardCard} ${taken ? styles.boardCardTaken : ''}`}
+                onClick={() => !taken && handleSelectBoard(idx)}
+              >
+                <div className={styles.boardCardTop}>
+                  <span className={styles.boardCardNum}>#{idx + 1}</span>
+                  {taken && <span className={styles.takenBadge}>선택됨</span>}
                 </div>
-                <div className={styles.previewHeader}>
-                  {['B','I','N','G','O'].map(l=><div key={l} className={styles.previewLabel}>{l}</div>)}
+                {/* BINGO 헤더 */}
+                <div className={styles.cardBingoHeader}>
+                  {['B','I','N','G','O'].map(l => <span key={l}>{l}</span>)}
                 </div>
-                <div className={styles.previewGrid}>
-                  {previewBoard.map((row,ri)=>row.map((num,ci)=>(
-                    <div key={`${ri}-${ci}`} className={styles.previewCell}>{num}</div>
-                  )))}
-                </div>
-                {!takenBoards.has(preview!) && (
-                  <button className={styles.selectConfirmBtn} onClick={() => handleSelectBoard(preview!)}>
-                    이 빙고판 선택하기
-                  </button>
+                {/* 숫자 그리드 */}
+                {b && (
+                  <div className={styles.cardGrid5}>
+                    {b.map((row,ri) => row.map((num,ci) => (
+                      <div key={`${ri}-${ci}`} className={styles.cardCell}>{num}</div>
+                    )))}
+                  </div>
+                )}
+                {!taken && (
+                  <div className={styles.cardSelectOverlay}>
+                    <span>선택하기</span>
+                  </div>
                 )}
               </div>
-            ) : (
-              <div className={styles.previewEmpty}>
-                <div className={styles.previewEmptyIcon}>👆</div>
-                <p>번호에 마우스를 올리면<br/>빙고판 미리보기가 표시됩니다</p>
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
       </div>
     );
   }
 
-  // ── 게임 플레이 화면
+  // ── 게임 플레이
   return (
     <div className={styles.container}>
       {isWinner && <WinnerOverlay board={board} markedNumbers={markedNumbers} />}
@@ -209,31 +178,56 @@ export default function GameEventPage() {
       </header>
 
       {game?.status === 'waiting' && <div className={styles.statusBar}>⏳ 게임 시작을 기다리고 있습니다...</div>}
-      {isPlaying && <div className={styles.hintBar}>숫자를 눌러 마킹 · 다시 누르면 취소</div>}
+      {isPlaying && !finished && <div className={styles.hintBar}>숫자를 눌러 마킹 · 다시 누르면 취소</div>}
 
       <div className={styles.boardWrapper}>
         <div className={styles.boardHeader}>
-          {['B','I','N','G','O'].map(l=><div key={l} className={styles.columnLabel}>{l}</div>)}
+          {['B','I','N','G','O'].map(l => <div key={l} className={styles.columnLabel}>{l}</div>)}
         </div>
-        <div className={styles.board}>
-          {board.map((row,ri)=>row.map((num,ci)=>{
-            const isMarked = markedNumbers.includes(num);
-            const isBingo  = completedCells.has(num);
-            const isLoserX = iLost && !isMarked;
-            return (
-              <div key={`${ri}-${ci}`}
-                className={`${styles.cell} ${isMarked?styles.cellMarked:''} ${isBingo?styles.cellBingo:''} ${isLoserX?styles.cellX:''} ${isPlaying&&!isFinished?styles.cellClickable:''}`}
-                onClick={() => handleCellClick(num)}
-              >
-                {isLoserX ? <span className={styles.xMark}>×</span> : (
-                  <>
-                    <span className={styles.cellNum}>{num}</span>
-                    {isMarked && <div className={styles.circle}><svg viewBox="0 0 40 40" className={styles.circleSvg}><circle cx="20" cy="20" r="17"/></svg></div>}
-                  </>
-                )}
-              </div>
-            );
-          }))}
+
+        {/* 빙고판 + 완성 줄 선 오버레이 */}
+        <div className={styles.boardContainer}>
+          <div className={styles.board}>
+            {board.map((row, ri) => row.map((num, ci) => {
+              const isMarked  = markedNumbers.includes(num);
+              const isBingo   = completedCells.has(num);
+              // FINISH 후: 마킹 안된 셀은 X, 완성줄은 금색 유지
+              const showX     = finished && !isMarked;
+              return (
+                <div
+                  key={`${ri}-${ci}`}
+                  className={`
+                    ${styles.cell}
+                    ${isMarked  ? styles.cellMarked   : ''}
+                    ${isBingo   ? styles.cellBingo    : ''}
+                    ${showX     ? styles.cellX        : ''}
+                    ${isPlaying && !finished ? styles.cellClickable : ''}
+                  `}
+                  onClick={() => handleCellClick(num)}
+                >
+                  {showX ? (
+                    <span className={styles.xMark}>×</span>
+                  ) : (
+                    <>
+                      <span className={styles.cellNum}>{num}</span>
+                      {isMarked && (
+                        <div className={styles.circle}>
+                          <svg viewBox="0 0 40 40" className={styles.circleSvg}>
+                            <circle cx="20" cy="20" r="17"/>
+                          </svg>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            }))}
+          </div>
+
+          {/* 완성 줄 선 오버레이 (FINISH 후) */}
+          {finished && completedLineCoords.map((line, i) => (
+            <div key={i} className={styles.lineOverlay} style={line} />
+          ))}
         </div>
       </div>
 
@@ -245,8 +239,53 @@ export default function GameEventPage() {
         >
           {finishing ? '처리 중...' : canFinish ? '🎉 BINGO! FINISH' : 'FINISH'}
         </button>
-        {!canFinish && isPlaying && <p className={styles.finishHint}>1줄 완성 시 활성화됩니다</p>}
+        {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>1줄 완성 시 활성화됩니다</p>}
       </div>
     </div>
   );
+}
+
+// ── 완성된 줄의 CSS 스타일 계산 (선 위치)
+function getCompletedLineCoords(board: number[][], markedNumbers: number[]): React.CSSProperties[] {
+  const markedSet = new Set(markedNumbers);
+  const lines: React.CSSProperties[] = [];
+  const CELL = 100 / 5; // 20%
+
+  // 가로
+  for (let r = 0; r < 5; r++) {
+    if (board[r].every(n => markedSet.has(n))) {
+      lines.push({
+        top: `${CELL * r + CELL / 2}%`,
+        left: '4%', width: '92%', height: '3px',
+        transform: 'translateY(-50%)',
+      });
+    }
+  }
+  // 세로
+  for (let c = 0; c < 5; c++) {
+    if (board.map(row => row[c]).every(n => markedSet.has(n))) {
+      lines.push({
+        left: `${CELL * c + CELL / 2}%`,
+        top: '4%', height: '92%', width: '3px',
+        transform: 'translateX(-50%)',
+      });
+    }
+  }
+  // 대각선 ↘
+  if ([0,1,2,3,4].map(i => board[i][i]).every(n => markedSet.has(n))) {
+    lines.push({
+      top: '50%', left: '50%',
+      width: '133%', height: '3px',
+      transform: 'translate(-50%, -50%) rotate(45deg)',
+    });
+  }
+  // 대각선 ↙
+  if ([0,1,2,3,4].map(i => board[i][4-i]).every(n => markedSet.has(n))) {
+    lines.push({
+      top: '50%', left: '50%',
+      width: '133%', height: '3px',
+      transform: 'translate(-50%, -50%) rotate(-45deg)',
+    });
+  }
+  return lines;
 }
