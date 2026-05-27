@@ -43,3 +43,21 @@
 .miniGrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
 .miniCell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 700; border-radius: 2px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
 .miniMarked { background: var(--called); border-color: var(--border-bright); color: var(--called-text); }
+
+.logoutBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.logoutBtn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}

@@ -43,3 +43,21 @@
 .actionBtn:hover { border-color: var(--border-bright); color: var(--text-primary); }
 .actionBtnPrimary { flex: 1; padding: 6px 0; background: rgba(59,130,246,0.15); border: 1px solid var(--accent-blue); border-radius: 4px; color: var(--accent-blue); font-size: 11px; cursor: pointer; transition: all 0.2s; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
 .actionBtnPrimary:hover { background: rgba(59,130,246,0.25); }
+
+.logoutBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.logoutBtn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}

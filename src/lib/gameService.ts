@@ -25,6 +25,7 @@ export interface ActivationCode {
   code: string;
   used: boolean;
   createdAt: number;
+  activatedAt?: number;
 }
 
 // ══════════════════════════════════════
@@ -66,7 +67,22 @@ export async function validateCode(code: string): Promise<'super' | 'event' | 'i
   if (code === SUPER_ADMIN_CODE) return 'super';
 
   const snap = await get(ref(db, `activationCodes/${code}`));
-  if (snap.exists()) return 'event';
+  if (snap.exists()) {
+    const data = snap.val() as ActivationCode;
+    // 이미 다른 기기에서 사용 중인 코드인지 확인
+    // localStorage에 저장된 코드와 같은 코드면 재접속 허용 (본인)
+    // used지만 activatedBy가 없으면 최초 사용
+    if (data.used && data.activatedAt) {
+      // 이미 활성화된 코드 - 재접속은 localStorage로 처리되므로 여기선 차단
+      return 'already_used' as any;
+    }
+    // 처음 사용 시 used: true + 활성화 시각 기록
+    await update(ref(db, `activationCodes/${code}`), {
+      used: true,
+      activatedAt: Date.now(),
+    });
+    return 'event';
+  }
   return 'invalid';
 }
 

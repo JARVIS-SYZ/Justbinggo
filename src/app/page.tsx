@@ -18,14 +18,29 @@ export default function HomePage() {
     setLoading(true);
     setError('');
 
-    const type = await validateCode(code.trim().toUpperCase());
+    // 이미 로그인된 코드인지 먼저 확인 (재접속 허용)
+    const upperCode = code.trim().toUpperCase();
+    const alreadyLoggedIn = localStorage.getItem(`bingo_admin_${upperCode}`);
+
+    if (alreadyLoggedIn === 'true') {
+      router.push(`/admin/${upperCode}`);
+      setLoading(false);
+      return;
+    }
+
+    const type = await validateCode(upperCode);
 
     if (type === 'super') {
-      sessionStorage.setItem('bingo_super', 'true');
+      localStorage.setItem('bingo_super', 'true');
       router.push('/super-admin');
     } else if (type === 'event') {
-      sessionStorage.setItem(`bingo_admin_${code.toUpperCase()}`, 'true');
-      router.push(`/admin/${code.trim().toUpperCase()}`);
+      localStorage.setItem(`bingo_admin_${upperCode}`, 'true');
+      router.push(`/admin/${upperCode}`);
+    } else if ((type as string) === 'already_used') {
+      setError('이미 사용 중인 코드입니다.');
+      setShake(true);
+      setCode('');
+      setTimeout(() => setShake(false), 500);
     } else {
       setError('올바르지 않은 코드입니다.');
       setShake(true);

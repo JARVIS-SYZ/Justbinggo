@@ -23,7 +23,7 @@ export default function AdminEventPage() {
   const [copied, setCopied]             = useState(false);
 
   useEffect(() => {
-    const ok = sessionStorage.getItem(`bingo_admin_${eventCode}`);
+    const ok = localStorage.getItem(`bingo_admin_${eventCode}`);
     if (ok !== 'true') { router.push('/'); return; }
 
     const u1 = subscribeEventGame(eventCode, (g) => {
@@ -47,6 +47,11 @@ export default function AdminEventPage() {
     setIsInit(false);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem(`bingo_admin_${eventCode}`);
+    router.push('/');
+  };
+
   const isPlaying  = game?.status === 'playing';
   const isFinished = game?.status === 'finished';
   const participantList = participants ? Object.values(participants).sort((a, b) => a.boardIndex - b.boardIndex) : [];
@@ -65,6 +70,7 @@ export default function AdminEventPage() {
             {isFinished ? '🏆 게임 종료' : isPlaying ? '🎯 진행 중' : '⏳ 대기 중'}
           </div>
           <div className={styles.participantBadge}>👥 <strong>{count}</strong>명</div>
+          <button className={styles.logoutBtn} onClick={handleLogout}>로그아웃</button>
         </div>
       </header>
 

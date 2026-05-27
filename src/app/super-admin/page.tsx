@@ -13,10 +13,15 @@ export default function SuperAdminPage() {
   const [filter, setFilter] = useState<'all' | 'used' | 'unused'>('all');
 
   useEffect(() => {
-    const ok = sessionStorage.getItem('bingo_super');
+    const ok = localStorage.getItem('bingo_super');
     if (ok !== 'true') { router.push('/'); return; }
     return subscribeActivationCodes(setCodes);
   }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('bingo_super');
+    router.push('/');
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -67,6 +72,7 @@ export default function SuperAdminPage() {
               </button>
             ))}
           </div>
+          <button className={styles.logoutBtn} onClick={handleLogout}>로그아웃</button>
           <button className="btn btn-primary" onClick={handleGenerate} disabled={generating}>
             {generating ? '생성 중...' : '⚡ 코드 100개 생성'}
           </button>
