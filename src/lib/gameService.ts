@@ -32,26 +32,50 @@ export interface ActivationCode {
 // 슈퍼어드민
 // ══════════════════════════════════════
 
-// 활성화 코드 100개 생성
-export async function generateActivationCodes(): Promise<string[]> {
-  const existing = await get(ref(db, 'activationCodes'));
-  if (existing.exists()) {
-    if (!confirm('기존 코드가 있습니다. 모두 초기화하고 새로 생성할까요?')) return [];
-  }
+// 텍스트에서 코드 추가 (줄 구분)
+export async function addActivationCodes(
+  rawText: string
+): Promise<{ added: number; skipped: number; skippedCodes: string[] }> {
+  const lines = rawText
+    .split(/\n/)
+    .map(l => l.trim().toUpperCase())
+    .filter(l => l.length > 0);
 
-  const codes: Record<string, ActivationCode> = {};
-  const generated: string[] = [];
+  const existingSnap = await get(ref(db, 'activationCodes'));
+  const existing = existingSnap.exists()
+    ? (existingSnap.val() as Record<string, ActivationCode>)
+    : {};
 
-  while (generated.length < 100) {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    if (!generated.includes(code)) {
-      generated.push(code);
-      codes[code] = { code, used: false, createdAt: Date.now() };
+  const skippedCodes: string[] = [];
+  const toAdd: Record<string, ActivationCode> = {};
+
+  for (const code of lines) {
+    if (existing[code] || toAdd[code]) {
+      skippedCodes.push(code);
+    } else {
+      toAdd[code] = { code, used: false, createdAt: Date.now() };
     }
   }
 
-  await set(ref(db, 'activationCodes'), codes);
-  return generated;
+  for (const [key, val] of Object.entries(toAdd)) {
+    await set(ref(db, `activationCodes/${key}`), val);
+  }
+
+  return {
+    added: Object.keys(toAdd).length,
+    skipped: skippedCodes.length,
+    skippedCodes,
+  };
+}
+
+// 코드 개별 삭제
+export async function deleteActivationCode(code: string): Promise<void> {
+  await set(ref(db, `activationCodes/${code}`), null);
+}
+
+// 전체 코드 삭제
+export async function deleteAllActivationCodes(): Promise<void> {
+  await set(ref(db, 'activationCodes'), null);
 }
 
 // 활성화 코드 목록 구독
