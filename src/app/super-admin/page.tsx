@@ -51,7 +51,7 @@ export default function SuperAdminPage() {
   };
 
   const handleCopyUrl = (code: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/game/${code}`);
+    navigator.clipboard.writeText(`${window.location.origin}/admin/${code}`);
     setCopied(code + '_url');
     setTimeout(() => setCopied(null), 2000);
   };
@@ -129,7 +129,7 @@ export default function SuperAdminPage() {
                     {copied === c.code + '_code' ? '✓' : '코드복사'}
                   </button>
                   <button className={styles.actionBtn} onClick={() => handleCopyUrl(c.code)}>
-                    {copied === c.code + '_url' ? '✓' : 'URL복사'}
+                    {copied === c.code + '_url' ? '✓' : '관리자URL'}
                   </button>
                   <button className={styles.actionBtnPrimary} onClick={() => router.push(`/admin/${c.code}`)}>
                     관리
