@@ -7,9 +7,9 @@ import styles from './page.module.css';
 
 export default function HomePage() {
   const router = useRouter();
-  const [code, setCode]     = useState('');
-  const [error, setError]   = useState('');
-  const [shake, setShake]   = useState(false);
+  const [code, setCode]       = useState('');
+  const [error, setError]     = useState('');
+  const [shake, setShake]     = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,7 +18,6 @@ export default function HomePage() {
     setLoading(true);
     setError('');
 
-    // 이미 로그인된 코드인지 먼저 확인 (재접속 허용)
     const upperCode = code.trim().toUpperCase();
     const alreadyLoggedIn = localStorage.getItem(`bingo_admin_${upperCode}`);
 
@@ -37,12 +36,12 @@ export default function HomePage() {
       localStorage.setItem(`bingo_admin_${upperCode}`, 'true');
       router.push(`/admin/${upperCode}`);
     } else if ((type as string) === 'already_used') {
-      setError('이미 사용 중인 코드입니다.');
+      setError('Code is already in use.');
       setShake(true);
       setCode('');
       setTimeout(() => setShake(false), 500);
     } else {
-      setError('올바르지 않은 코드입니다.');
+      setError('Invalid access code.');
       setShake(true);
       setCode('');
       setTimeout(() => setShake(false), 500);
@@ -63,7 +62,7 @@ export default function HomePage() {
           <p className={styles.subtitle}>SYSTEM v1.0</p>
         </div>
 
-        <div className={styles.divider}><span>코드 입력</span></div>
+        <div className={styles.divider}><span>ACCESS</span></div>
 
         <form onSubmit={handleSubmit} className={`${styles.form} ${shake ? styles.shake : ''}`}>
           <div className={styles.inputGroup}>
@@ -80,12 +79,10 @@ export default function HomePage() {
           </div>
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.submitBtn} disabled={loading}>
-            <span>{loading ? '확인 중...' : '접속하기'}</span>
+            <span>{loading ? 'Verifying...' : 'ACCESS'}</span>
             {!loading && <span className={styles.arrow}>→</span>}
           </button>
         </form>
-
-        <p className={styles.hint}>관객은 QR코드 또는 관리자가 제공한 URL로 접속하세요</p>
       </div>
     </div>
   );
