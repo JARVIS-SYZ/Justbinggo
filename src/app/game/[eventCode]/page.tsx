@@ -7,7 +7,6 @@ import {
   selectBoard, setEventWinner, toggleMark, EventGame,
 } from '@/lib/gameService';
 import { findCompletedLines, generateSessionId } from '@/lib/bingo';
-
 import styles from './page.module.css';
 
 type Phase = 'select' | 'play';
@@ -164,7 +163,6 @@ export default function GameEventPage() {
   // ── 게임 플레이
   return (
     <div className={styles.container}>
-      
       {iLost && <div className={styles.gameOverBanner}>🏆 다른 참가자가 빙고를 완성했습니다</div>}
 
       <header className={styles.header}>

@@ -5,108 +5,67 @@
 .waiting p  { font-size:14px; color:var(--text-secondary); }
 
 /* ══════════════════════════════════════
-   빙고판 선택 화면 (카드 목록)
+   빙고판 선택 화면 (카드 목록) - 스크롤 가능
 ══════════════════════════════════════ */
 .selectContainer { min-height:100vh; display:flex; flex-direction:column; background:var(--bg-primary); }
-
 .selectHeader { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg-card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
 .logoSmall { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:900; color:var(--accent-blue); letter-spacing:0.2em; }
 .eventCodeBadge { background:rgba(59,130,246,0.15); border:1px solid var(--accent-blue); color:var(--accent-blue); padding:4px 12px; border-radius:20px; font-family:'Orbitron',sans-serif; font-size:12px; letter-spacing:0.1em; }
-
 .selectInfo { padding:20px 20px 12px; }
 .selectTitle { font-family:'Orbitron',sans-serif; font-size:17px; font-weight:900; color:var(--text-primary); margin-bottom:6px; }
 .selectSubtitle { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .takenLabel { color:var(--accent-red); font-size:12px; }
 
-/* 카드 그리드 */
 .cardGrid {
   display:grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap:12px;
   padding:0 16px 32px;
-  overflow-y:auto;
 }
 @media (max-width:480px) {
   .cardGrid { grid-template-columns: repeat(2, 1fr); gap:8px; padding:0 10px 24px; }
 }
 
-.boardCard {
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px;
-  cursor:pointer;
-  transition:all 0.2s;
-  position:relative;
-  overflow:hidden;
-}
-.boardCard:hover:not(.boardCardTaken) {
-  border-color:var(--accent-blue);
-  box-shadow:var(--glow-blue);
-  transform:translateY(-2px);
-}
-.boardCardTaken {
-  opacity:0.4;
-  cursor:not-allowed;
-  background:rgba(239,68,68,0.05);
-  border-color:rgba(239,68,68,0.2);
-}
-
+.boardCard { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:10px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+.boardCard:hover:not(.boardCardTaken) { border-color:var(--accent-blue); box-shadow:var(--glow-blue); transform:translateY(-2px); }
+.boardCardTaken { opacity:0.4; cursor:not-allowed; background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.2); }
 .boardCardTop { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .boardCardNum { font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; color:var(--text-secondary); }
 .takenBadge { font-size:9px; color:var(--accent-red); background:rgba(239,68,68,0.15); padding:1px 5px; border-radius:3px; font-weight:600; }
-
 .cardBingoHeader { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; margin-bottom:3px; }
 .cardBingoHeader span { text-align:center; font-family:'Orbitron',sans-serif; font-size:8px; font-weight:900; color:var(--accent-blue); padding:2px 0; }
-
 .cardGrid5 { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }
-.cardCell {
-  aspect-ratio:1;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Orbitron',sans-serif; font-size:8px; font-weight:700;
-  border-radius:3px;
-  background:var(--bg-secondary); border:1px solid var(--border);
-  color:var(--text-primary);
-}
-
-/* hover 시 "선택하기" 오버레이 */
-.cardSelectOverlay {
-  position:absolute; inset:0;
-  background:rgba(59,130,246,0.0);
-  display:flex; align-items:center; justify-content:center;
-  opacity:0; transition:all 0.2s;
-  border-radius:10px;
-}
-.boardCard:hover:not(.boardCardTaken) .cardSelectOverlay {
-  background:rgba(59,130,246,0.15);
-  opacity:1;
-}
-.cardSelectOverlay span {
-  font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900;
-  color:var(--accent-blue); letter-spacing:0.05em;
-  background:var(--bg-card); padding:6px 12px; border-radius:6px;
-  border:1px solid var(--accent-blue);
-}
+.cardCell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',sans-serif; font-size:8px; font-weight:700; border-radius:3px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-primary); }
+.cardSelectOverlay { position:absolute; inset:0; background:rgba(59,130,246,0.0); display:flex; align-items:center; justify-content:center; opacity:0; transition:all 0.2s; border-radius:10px; }
+.boardCard:hover:not(.boardCardTaken) .cardSelectOverlay { background:rgba(59,130,246,0.15); opacity:1; }
+.cardSelectOverlay span { font-family:'Orbitron',sans-serif; font-size:11px; font-weight:900; color:var(--accent-blue); letter-spacing:0.05em; background:var(--bg-card); padding:6px 12px; border-radius:6px; border:1px solid var(--accent-blue); }
 
 /* ══════════════════════════════════════
-   게임 플레이 화면
+   게임 플레이 화면 - 스크롤 없음, 화면에 꽉 참
 ══════════════════════════════════════ */
-.container { min-height:100vh; display:flex; flex-direction:column; max-width:480px; margin:0 auto; padding-bottom:32px; }
-.header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg-card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+.container {
+  height: 100dvh; /* dynamic viewport height - 모바일 주소창 고려 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--bg-card); border-bottom:1px solid var(--border); flex-shrink:0; }
 .gameInfo { display:flex; align-items:center; gap:10px; }
 .boardNum { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--text-muted); background:var(--bg-secondary); padding:3px 8px; border-radius:4px; }
 .bingoCount { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--accent-gold); font-weight:700; }
 
-.statusBar { background:rgba(74,96,128,0.2); border-bottom:1px solid var(--border); padding:10px 20px; font-size:13px; color:var(--text-muted); text-align:center; }
-.hintBar { background:rgba(59,130,246,0.08); border-bottom:1px solid var(--border); padding:8px 20px; font-size:12px; color:var(--text-muted); text-align:center; }
+.statusBar { background:rgba(74,96,128,0.2); border-bottom:1px solid var(--border); padding:8px 20px; font-size:13px; color:var(--text-muted); text-align:center; flex-shrink:0; }
+.hintBar { background:rgba(59,130,246,0.08); border-bottom:1px solid var(--border); padding:6px 20px; font-size:12px; color:var(--text-muted); text-align:center; flex-shrink:0; }
 
-.boardWrapper { padding:16px 14px 8px; flex:1; }
+/* 빙고판 영역 - flex-shrink:0으로 크기 고정 */
+.boardWrapper { padding:12px 14px 0; flex-shrink:0; }
 .boardHeader { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-bottom:4px; }
 .columnLabel { text-align:center; font-family:'Orbitron',sans-serif; font-size:16px; font-weight:900; padding:6px 0; color:var(--accent-blue); text-shadow:0 0 8px rgba(59,130,246,0.5); }
 
-/* 보드 컨테이너 (선 오버레이용 relative) */
 .boardContainer { position:relative; }
-
 .board { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; }
 
 .cell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; position:relative; background:var(--bg-card); border:1px solid var(--border); border-radius:7px; overflow:hidden; transition:all 0.18s; user-select:none; -webkit-tap-highlight-color:transparent; }
@@ -119,40 +78,23 @@
 .circle { position:absolute; inset:3px; z-index:2; }
 .circleSvg { width:100%; height:100%; }
 .circleSvg circle { fill:none; stroke:var(--accent-blue); stroke-width:2.2; opacity:0.75; stroke-dasharray:107; stroke-dashoffset:107; animation:draw-circle 0.35s ease forwards; }
-
-/* 빙고 완성 줄 */
 .cellBingo { background:rgba(245,158,11,0.18) !important; border-color:var(--accent-gold) !important; box-shadow:0 0 10px rgba(245,158,11,0.25); }
 .cellBingo .cellNum { color:var(--accent-gold) !important; }
 .cellBingo .circleSvg circle { stroke:var(--accent-gold); opacity:1; }
-
-/* X 표시 */
 .cellX { background:rgba(20,20,30,0.7); border-color:rgba(74,96,128,0.2); }
 .xMark { font-family:'Orbitron',sans-serif; font-size:clamp(15px,5vw,22px); color:var(--text-muted); opacity:0.4; }
 
-/* 완성 줄 선 오버레이 */
-.lineOverlay {
-  position:absolute;
-  background:linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-  border-radius:3px;
-  box-shadow:0 0 8px rgba(245,158,11,0.8);
-  animation:line-appear 0.4s ease forwards;
-  pointer-events:none;
-  z-index:10;
-}
+.lineOverlay { position:absolute; background:linear-gradient(90deg, transparent, var(--accent-gold), transparent); border-radius:3px; box-shadow:0 0 8px rgba(245,158,11,0.8); animation:line-appear 0.4s ease forwards; pointer-events:none; z-index:10; }
+@keyframes line-appear { from { opacity:0; scale:0.3; } to { opacity:1; scale:1; } }
 
-@keyframes line-appear {
-  from { opacity:0; transform-origin:center; scale:0.3; }
-  to   { opacity:1; scale:1; }
-}
-
-/* FINISH 버튼 */
-.finishArea { padding:14px 14px 0; display:flex; flex-direction:column; align-items:center; gap:6px; }
-.finishBtn { width:100%; padding:16px; border-radius:10px; font-family:'Orbitron',sans-serif; font-size:15px; font-weight:900; letter-spacing:0.12em; border:2px solid var(--border); background:var(--bg-secondary); color:var(--text-muted); cursor:not-allowed; transition:all 0.25s; }
+/* FINISH 버튼 - 빙고판 바로 아래 */
+.finishArea { padding:12px 14px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.finishBtn { width:100%; padding:14px; border-radius:10px; font-family:'Orbitron',sans-serif; font-size:15px; font-weight:900; letter-spacing:0.12em; border:2px solid var(--border); background:var(--bg-secondary); color:var(--text-muted); cursor:not-allowed; transition:all 0.25s; }
 .finishActive { background:linear-gradient(135deg,#d97706,#f59e0b); border-color:var(--accent-gold); color:#000; cursor:pointer; box-shadow:0 0 24px rgba(245,158,11,0.5); animation:bingo-flash 1.5s ease infinite; }
 .finishActive:hover { transform:translateY(-2px); }
 .finishActive:disabled { animation:none; opacity:0.7; }
 .finishHint { font-size:11px; color:var(--text-muted); }
 
-.gameOverBanner { background:rgba(239,68,68,0.1); border-bottom:1px solid var(--accent-red); padding:12px 20px; font-size:14px; color:var(--accent-red); text-align:center; font-weight:600; }
+.gameOverBanner { background:rgba(239,68,68,0.1); border-bottom:1px solid var(--accent-red); padding:12px 20px; font-size:14px; color:var(--accent-red); text-align:center; font-weight:600; flex-shrink:0; }
 
 @keyframes draw-circle { to { stroke-dashoffset:0; } }
