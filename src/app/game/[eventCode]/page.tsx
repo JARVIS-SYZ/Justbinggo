@@ -36,17 +36,22 @@ export default function GameEventPage() {
       else setTokenInvalid(true);
     });
     return unsub;
-  }, [eventCode, actualEventCode]);
+  }, [eventCode]);
 
-  // 세션 초기화
+  // 세션 초기화 - roomToken 기반으로 고정 (actualEventCode 무관)
+  useEffect(() => {
+    // sessionId는 roomToken 기반으로 고정 (페이지 로드 시 1번만)
+    let sid = localStorage.getItem(`bingo_session_token_${eventCode}`);
+    if (!sid) { sid = generateSessionId(); localStorage.setItem(`bingo_session_token_${eventCode}`, sid); }
+    setSessionId(sid);
+  }, [eventCode]);
+
+  // 빙고판 복원 - actualEventCode 세팅 후
   useEffect(() => {
     if (!actualEventCode) return;
-    let sid = localStorage.getItem(`bingo_session_${actualEventCode}`);
-    if (!sid) { sid = generateSessionId(); localStorage.setItem(`bingo_session_${actualEventCode}`, sid); }
-    setSessionId(sid);
     const saved = localStorage.getItem(`bingo_board_${actualEventCode}`);
     if (saved !== null) { setBoardIndex(Number(saved)); setPhase('play'); }
-  }, [eventCode]);
+  }, [actualEventCode]);
 
   // 게임 상태 구독
   useEffect(() => {
