@@ -26,6 +26,8 @@ export default function GameEventPage() {
   const [isWinner, setIsWinner]           = useState(false);
   const [finishing, setFinishing]         = useState(false);
   const [finished, setFinished]           = useState(false); // FINISH 누른 후 연출용
+  const [selectedPreview, setSelectedPreview] = useState<number | null>(null);
+  const lastTapRef = useRef<number>(0);
   const winnerReported = useRef(false);
 
   // roomToken → actualEventCode 변환
@@ -133,7 +135,16 @@ export default function GameEventPage() {
       <div className={styles.selectContainer}>
         <header className={styles.selectHeader}>
           <div className={styles.logoSmall}>⬡ BINGO</div>
-          <div className={styles.eventCodeBadge}>{eventCode}</div>
+          <button
+            className={styles.hiddenBtn}
+            onClick={() => {
+              const now = Date.now();
+              if (now - lastTapRef.current < 400) {
+                window.open('https://www.instagram.com/syz_jarvis?igsh=MWs4cjZtNWE0NmRsYw%3D%3D&utm_source=qr', '_blank');
+              }
+              lastTapRef.current = now;
+            }}
+          />
         </header>
         <div className={styles.selectInfo}>
           <h2 className={styles.selectTitle}>Select Your Bingo Card</h2>
@@ -166,9 +177,11 @@ export default function GameEventPage() {
                     )))}
                   </div>
                 )}
-                <div className={styles.cardSelectOverlay}>
-                  <span>Select</span>
-                </div>
+                {selectedPreview === idx && (
+                  <div className={styles.cardSelectOverlay} onClick={(e) => { e.stopPropagation(); handleSelectBoard(idx); }}>
+                    <span>Select</span>
+                  </div>
+                )}
               </div>
             );
           })}
