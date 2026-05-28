@@ -88,38 +88,59 @@ export async function resetAllActivationCodes(): Promise<void> {
   }
 }
 
-// 특정 이벤트 참가자 데이터 정리
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+// 특정 이벤트 참가자 데이터 정리 (7일 이상 된 데이터만)
 export async function clearEventParticipants(eventCode: string): Promise<number> {
   const snap = await get(ref(db, `participants/${eventCode}`));
   if (!snap.exists()) return 0;
-  const count = Object.keys(snap.val()).length;
-  await set(ref(db, `participants/${eventCode}`), null);
+  const data = snap.val() as Record<string, Participant>;
+  const now = Date.now();
+  let count = 0;
+  for (const [sessionId, p] of Object.entries(data)) {
+    if (now - p.joinedAt > SEVEN_DAYS_MS) {
+      await set(ref(db, `participants/${eventCode}/${sessionId}`), null);
+      count++;
+    }
+  }
   return count;
 }
 
-// 전체 참가자 데이터 정리
+// 전체 참가자 데이터 정리 (7일 이상 된 데이터만)
 export async function clearAllParticipants(): Promise<number> {
   const snap = await get(ref(db, 'participants'));
   if (!snap.exists()) return 0;
+  const now = Date.now();
   let count = 0;
-  const data = snap.val();
+  const data = snap.val() as Record<string, Record<string, Participant>>;
   for (const eventCode of Object.keys(data)) {
-    if (data[eventCode]) count += Object.keys(data[eventCode]).length;
+    if (!data[eventCode]) continue;
+    for (const [sessionId, p] of Object.entries(data[eventCode])) {
+      if (now - p.joinedAt > SEVEN_DAYS_MS) {
+        await set(ref(db, `participants/${eventCode}/${sessionId}`), null);
+        count++;
+      }
+    }
   }
-  await set(ref(db, 'participants'), null);
   return count;
 }
 
-// 전체 참가자 수 조회
-export async function getTotalParticipantCount(): Promise<number> {
+// 전체 참가자 수 조회 (전체 / 7일 이상)
+export async function getTotalParticipantCount(): Promise<{ total: number; old: number }> {
   const snap = await get(ref(db, 'participants'));
-  if (!snap.exists()) return 0;
-  let count = 0;
-  const data = snap.val();
+  if (!snap.exists()) return { total: 0, old: 0 };
+  const now = Date.now();
+  let total = 0;
+  let old = 0;
+  const data = snap.val() as Record<string, Record<string, Participant>>;
   for (const eventCode of Object.keys(data)) {
-    if (data[eventCode]) count += Object.keys(data[eventCode]).length;
+    if (!data[eventCode]) continue;
+    for (const p of Object.values(data[eventCode])) {
+      total++;
+      if (now - p.joinedAt > SEVEN_DAYS_MS) old++;
+    }
   }
-  return count;
+  return { total, old };
 }
 
 // 코드 개별 삭제

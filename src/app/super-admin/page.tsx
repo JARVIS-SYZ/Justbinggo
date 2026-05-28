@@ -18,7 +18,7 @@ export default function SuperAdminPage() {
 
   // 코드 추가 모달
   const [showDataModal, setShowDataModal] = useState(false);
-  const [totalParticipants, setTotalParticipants] = useState(0);
+  const [totalParticipants, setTotalParticipants] = useState({ total: 0, old: 0 });
   const [clearingData, setClearingData]   = useState(false);
   const [clearResult, setClearResult]     = useState<string | null>(null);
   const [showAddModal, setShowAddModal]   = useState(false);
@@ -43,8 +43,9 @@ export default function SuperAdminPage() {
     if (!confirm('모든 참가자 데이터를 삭제할까요?')) return;
     setClearingData(true);
     const count = await clearAllParticipants();
-    setClearResult(`✓ ${count}개의 참가자 데이터가 삭제됐습니다.`);
-    setTotalParticipants(0);
+    setClearResult(`✓ ${count}개의 참가자 데이터가 삭제됐습니다. (7일 이상 된 데이터)`);
+    const newCount = await getTotalParticipantCount();
+    setTotalParticipants(newCount);
     setClearingData(false);
   };
 
@@ -52,7 +53,7 @@ export default function SuperAdminPage() {
     if (!confirm(`"${code}" 이벤트의 참가자 데이터를 삭제할까요?`)) return;
     setClearingData(true);
     const count = await clearEventParticipants(code);
-    setClearResult(`✓ "${code}" 이벤트의 ${count}개 데이터가 삭제됐습니다.`);
+    setClearResult(`✓ "${code}" 이벤트의 ${count}개 데이터가 삭제됐습니다. (7일 이상 된 데이터)`);
     const newTotal = await getTotalParticipantCount();
     setTotalParticipants(newTotal);
     setClearingData(false);
@@ -211,8 +212,12 @@ export default function SuperAdminPage() {
 
             <div className={styles.dataInfo}>
               <div className={styles.dataInfoRow}>
-                <span>전체 누적 참가자 데이터</span>
-                <strong className={styles.dataCount}>{totalParticipants}개</strong>
+                <span>전체 누적 참가자</span>
+                <strong className={styles.dataCount}>{totalParticipants.total}개</strong>
+              </div>
+              <div className={styles.dataInfoRow} style={{marginTop:'8px'}}>
+                <span>7일 이상 (삭제 대상)</span>
+                <strong className={styles.dataCountOld}>{totalParticipants.old}개</strong>
               </div>
             </div>
 
@@ -243,7 +248,7 @@ export default function SuperAdminPage() {
               <button
                 className={styles.clearAllBtn}
                 onClick={handleClearAll}
-                disabled={clearingData || totalParticipants === 0}
+                disabled={clearingData || totalParticipants.old === 0}
               >
                 {clearingData ? '삭제 중...' : '전체 삭제'}
               </button>

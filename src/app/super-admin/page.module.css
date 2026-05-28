@@ -110,3 +110,5 @@
 .clearAllBtn { flex:2; padding:12px; border-radius:8px; background:var(--accent-red); border:none; color:white; font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
 .clearAllBtn:hover:not(:disabled) { background:#dc2626; }
 .clearAllBtn:disabled { opacity:0.4; cursor:not-allowed; }
+
+.dataCountOld { font-family:'Orbitron',sans-serif; font-size:18px; color:var(--accent-red); }
