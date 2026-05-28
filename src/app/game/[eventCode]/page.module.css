@@ -14,7 +14,6 @@
 .selectInfo { padding:20px 20px 12px; }
 .selectTitle { font-family:'Orbitron',sans-serif; font-size:17px; font-weight:900; color:var(--text-primary); margin-bottom:6px; }
 .selectSubtitle { font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.takenLabel { color:var(--accent-red); font-size:12px; }
 
 .cardGrid {
   display:grid;
@@ -28,10 +27,8 @@
 
 .boardCard { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:10px; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
 .boardCard:hover:not(.boardCardTaken) { border-color:var(--accent-blue); box-shadow:var(--glow-blue); transform:translateY(-2px); }
-.boardCardTaken { opacity:0.4; cursor:not-allowed; background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.2); }
 .boardCardTop { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .boardCardNum { font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; color:var(--text-secondary); }
-.takenBadge { font-size:9px; color:var(--accent-red); background:rgba(239,68,68,0.15); padding:1px 5px; border-radius:3px; font-weight:600; }
 .cardBingoHeader { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; margin-bottom:3px; }
 .cardBingoHeader span { text-align:center; font-family:'Orbitron',sans-serif; font-size:8px; font-weight:900; color:var(--accent-blue); padding:2px 0; }
 .cardGrid5 { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }

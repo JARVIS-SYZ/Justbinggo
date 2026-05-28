@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import {
-  subscribeEventGame, subscribeTakenBoards, subscribeMyMarks,
+  subscribeEventGame, subscribeMyMarks,
   selectBoard, setEventWinner, toggleMark, subscribeEventCodeByToken, EventGame,
 } from '@/lib/gameService';
 import { findCompletedLines, generateSessionId } from '@/lib/bingo';
@@ -19,7 +19,6 @@ export default function GameEventPage() {
   const [actualEventCode, setActualEventCode] = useState('');
   const [tokenInvalid, setTokenInvalid]   = useState(false);
   const [game, setGame]                   = useState<EventGame | null>(null);
-  const [takenBoards, setTakenBoards]     = useState<Set<number>>(new Set());
   const [phase, setPhase]                 = useState<Phase>('select');
   const [boardIndex, setBoardIndex]       = useState<number | null>(null);
   const [board, setBoard]                 = useState<number[][]>([]);
@@ -66,8 +65,7 @@ export default function GameEventPage() {
       }
       if (g?.winner === sessionId) setIsWinner(true);
     });
-    const u2 = subscribeTakenBoards(actualEventCode, setTakenBoards);
-    return () => { u1(); u2(); };
+    return () => { u1(); };
   }, [actualEventCode, sessionId]);
 
   useEffect(() => {
@@ -80,14 +78,11 @@ export default function GameEventPage() {
   }, [actualEventCode, sessionId, boardIndex]);
 
   const handleSelectBoard = async (idx: number) => {
-    if (takenBoards.has(idx)) return;
     const ok = await selectBoard(actualEventCode, sessionId, idx);
     if (ok) {
       setBoardIndex(idx);
       localStorage.setItem(`bingo_board_${actualEventCode}`, String(idx));
       setPhase('play');
-    } else {
-      alert('This card is already taken. Please choose another.');
     }
   };
 
@@ -143,24 +138,21 @@ export default function GameEventPage() {
         <div className={styles.selectInfo}>
           <h2 className={styles.selectTitle}>Select Your Bingo Card</h2>
           <p className={styles.selectSubtitle}>
-            Tap a card to select it &nbsp;·&nbsp;
-            <span className={styles.takenLabel}>■ Taken</span>
+            Tap a card to select it
           </p>
         </div>
 
         <div className={styles.cardGrid}>
           {Array.from({length:100}, (_,i) => i).map(idx => {
-            const taken = takenBoards.has(idx);
             const b = game.boards?.[idx];
             return (
               <div
                 key={idx}
-                className={`${styles.boardCard} ${taken ? styles.boardCardTaken : ''}`}
-                onClick={() => !taken && handleSelectBoard(idx)}
+                className={styles.boardCard}
+                onClick={() => handleSelectBoard(idx)}
               >
                 <div className={styles.boardCardTop}>
                   <span className={styles.boardCardNum}>#{idx + 1}</span>
-                  {taken && <span className={styles.takenBadge}>Taken</span>}
                 </div>
                 {/* BINGO 헤더 */}
                 <div className={styles.cardBingoHeader}>
@@ -174,11 +166,9 @@ export default function GameEventPage() {
                     )))}
                   </div>
                 )}
-                {!taken && (
-                  <div className={styles.cardSelectOverlay}>
-                    <span>Select</span>
-                  </div>
-                )}
+                <div className={styles.cardSelectOverlay}>
+                  <span>Select</span>
+                </div>
               </div>
             );
           })}

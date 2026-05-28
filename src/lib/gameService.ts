@@ -215,19 +215,11 @@ export async function selectBoard(
   sessionId: string,
   boardIndex: number
 ): Promise<boolean> {
-  const snap = await get(ref(db, `participants/${eventCode}`));
-  const participants = snap.val() as Record<string, Participant> | null;
+  const snap = await get(ref(db, `participants/${eventCode}/${sessionId}`));
 
-  // 이미 선택된 판인지 확인
-  if (participants) {
-    const taken = Object.values(participants).some(p => p.boardIndex === boardIndex);
-    if (taken) return false;
-
-    // 본인이 이미 다른 판 선택했는지
-    if (participants[sessionId]) {
-      // 기존 선택 해제 후 새로 선택
-      await remove(ref(db, `participants/${eventCode}/${sessionId}`));
-    }
+  // 본인이 이미 다른 판 선택했으면 교체
+  if (snap.exists()) {
+    await remove(ref(db, `participants/${eventCode}/${sessionId}`));
   }
 
   await set(ref(db, `participants/${eventCode}/${sessionId}`), {
