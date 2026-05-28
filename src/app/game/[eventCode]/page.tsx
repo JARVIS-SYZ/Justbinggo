@@ -159,8 +159,8 @@ export default function GameEventPage() {
             return (
               <div
                 key={idx}
-                className={styles.boardCard}
-                onClick={() => handleSelectBoard(idx)}
+                className={`${styles.boardCard} ${selectedPreview === idx ? styles.boardCardSelected : ''}`}
+                onClick={() => setSelectedPreview(selectedPreview === idx ? null : idx)}
               >
                 <div className={styles.boardCardTop}>
                   <span className={styles.boardCardNum}>#{idx + 1}</span>
