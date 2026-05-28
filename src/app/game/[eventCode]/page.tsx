@@ -87,12 +87,12 @@ export default function GameEventPage() {
   };
 
   const handleCellClick = async (num: number) => {
-    if (!game || game.status !== 'playing' || game.winner || finished) return;
+    if (!game || finished) return;
     await toggleMark(actualEventCode, sessionId, num);
   };
 
   const handleFinish = async () => {
-    if (!canFinish || finishing || winnerReported.current) return;
+    if (!canFinish || finishing) return;
     winnerReported.current = true;
     setFinishing(true);
     setFinished(true);
@@ -102,7 +102,7 @@ export default function GameEventPage() {
   const isPlaying      = game?.status === 'playing';
   const isFinished     = game?.status === 'finished';
   const completedLines = board.length ? findCompletedLines(board, markedNumbers) : [];
-  const canFinish      = isPlaying && !isFinished && completedLines.length >= 1 && !isWinner && !finished;
+  const canFinish      = !isFinished && completedLines.length >= 1 && !finished;
   const completedCells = new Set(completedLines.flat());
   const iLost          = isFinished && game?.winner !== sessionId;
 

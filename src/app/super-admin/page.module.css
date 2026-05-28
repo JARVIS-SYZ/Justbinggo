@@ -88,3 +88,25 @@
 .modalAddBtn { flex:2; padding:12px; border-radius:8px; background:var(--accent-blue); border:none; color:white; font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.05em; }
 .modalAddBtn:hover:not(:disabled) { background:#2563eb; box-shadow:var(--glow-blue); }
 .modalAddBtn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* 데이터 정리 버튼 */
+.dataBtn { padding:8px 18px; border-radius:6px; background:transparent; border:1px solid var(--text-muted); color:var(--text-muted); font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.dataBtn:hover { border-color:var(--accent-red); color:var(--accent-red); }
+
+/* 데이터 정리 모달 */
+.dataInfo { background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; }
+.dataInfoRow { display:flex; align-items:center; justify-content:space-between; }
+.dataInfoRow span { font-size:13px; color:var(--text-secondary); }
+.dataCount { font-family:'Orbitron',sans-serif; font-size:20px; color:var(--accent-blue); }
+.clearResult { background:rgba(16,185,129,0.1); border:1px solid var(--accent-green); border-radius:6px; padding:10px 14px; font-size:13px; color:var(--accent-green); margin-bottom:16px; }
+.dataClearSection { margin-bottom:20px; }
+.dataSectionTitle { font-size:12px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+.eventClearList { display:flex; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; }
+.eventClearRow { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border); }
+.eventClearCode { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--text-primary); font-weight:700; }
+.eventClearBtn { padding:4px 12px; border-radius:4px; background:transparent; border:1px solid rgba(239,68,68,0.3); color:rgba(239,68,68,0.7); font-size:11px; cursor:pointer; transition:all 0.2s; font-family:'Rajdhani',sans-serif; font-weight:600; }
+.eventClearBtn:hover:not(:disabled) { border-color:var(--accent-red); color:var(--accent-red); background:rgba(239,68,68,0.08); }
+.eventClearBtn:disabled { opacity:0.4; cursor:not-allowed; }
+.clearAllBtn { flex:2; padding:12px; border-radius:8px; background:var(--accent-red); border:none; color:white; font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.clearAllBtn:hover:not(:disabled) { background:#dc2626; }
+.clearAllBtn:disabled { opacity:0.4; cursor:not-allowed; }

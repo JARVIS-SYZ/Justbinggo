@@ -88,6 +88,40 @@ export async function resetAllActivationCodes(): Promise<void> {
   }
 }
 
+// 특정 이벤트 참가자 데이터 정리
+export async function clearEventParticipants(eventCode: string): Promise<number> {
+  const snap = await get(ref(db, `participants/${eventCode}`));
+  if (!snap.exists()) return 0;
+  const count = Object.keys(snap.val()).length;
+  await set(ref(db, `participants/${eventCode}`), null);
+  return count;
+}
+
+// 전체 참가자 데이터 정리
+export async function clearAllParticipants(): Promise<number> {
+  const snap = await get(ref(db, 'participants'));
+  if (!snap.exists()) return 0;
+  let count = 0;
+  const data = snap.val();
+  for (const eventCode of Object.keys(data)) {
+    if (data[eventCode]) count += Object.keys(data[eventCode]).length;
+  }
+  await set(ref(db, 'participants'), null);
+  return count;
+}
+
+// 전체 참가자 수 조회
+export async function getTotalParticipantCount(): Promise<number> {
+  const snap = await get(ref(db, 'participants'));
+  if (!snap.exists()) return 0;
+  let count = 0;
+  const data = snap.val();
+  for (const eventCode of Object.keys(data)) {
+    if (data[eventCode]) count += Object.keys(data[eventCode]).length;
+  }
+  return count;
+}
+
 // 코드 개별 삭제
 export async function deleteActivationCode(code: string): Promise<void> {
   await set(ref(db, `activationCodes/${code}`), null);
@@ -159,7 +193,7 @@ export async function initializeEvent(eventCode: string): Promise<string> {
   const token = generateRoomToken();
   const boards = generateAllBoards();
   const game: EventGame = {
-    status: 'waiting',
+    status: 'playing',
     boards,
     winner: null,
     winnerBoardIndex: null,

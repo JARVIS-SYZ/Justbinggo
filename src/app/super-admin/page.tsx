@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   addActivationCodes, deleteActivationCode, deleteAllActivationCodes,
   resetActivationCode, resetAllActivationCodes,
+  clearAllParticipants, clearEventParticipants, getTotalParticipantCount,
   subscribeActivationCodes, ActivationCode,
 } from '@/lib/gameService';
 import styles from './page.module.css';
@@ -16,7 +17,11 @@ export default function SuperAdminPage() {
   const [copied, setCopied]         = useState<string | null>(null);
 
   // 코드 추가 모달
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
+  const [totalParticipants, setTotalParticipants] = useState(0);
+  const [clearingData, setClearingData]   = useState(false);
+  const [clearResult, setClearResult]     = useState<string | null>(null);
+  const [showAddModal, setShowAddModal]   = useState(false);
   const [inputText, setInputText]       = useState('');
   const [adding, setAdding]             = useState(false);
   const [addResult, setAddResult]       = useState<{ added: number; skipped: number; skippedCodes: string[] } | null>(null);
@@ -26,6 +31,32 @@ export default function SuperAdminPage() {
     if (ok !== 'true') { router.push('/'); return; }
     return subscribeActivationCodes(setCodes);
   }, [router]);
+
+  const handleOpenDataModal = async () => {
+    const count = await getTotalParticipantCount();
+    setTotalParticipants(count);
+    setClearResult(null);
+    setShowDataModal(true);
+  };
+
+  const handleClearAll = async () => {
+    if (!confirm('모든 참가자 데이터를 삭제할까요?')) return;
+    setClearingData(true);
+    const count = await clearAllParticipants();
+    setClearResult(`✓ ${count}개의 참가자 데이터가 삭제됐습니다.`);
+    setTotalParticipants(0);
+    setClearingData(false);
+  };
+
+  const handleClearEvent = async (code: string) => {
+    if (!confirm(`"${code}" 이벤트의 참가자 데이터를 삭제할까요?`)) return;
+    setClearingData(true);
+    const count = await clearEventParticipants(code);
+    setClearResult(`✓ "${code}" 이벤트의 ${count}개 데이터가 삭제됐습니다.`);
+    const newTotal = await getTotalParticipantCount();
+    setTotalParticipants(newTotal);
+    setClearingData(false);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('bingo_super');
@@ -108,6 +139,9 @@ export default function SuperAdminPage() {
             ))}
           </div>
           <div className={styles.toolbarRight}>
+            <button className={styles.dataBtn} onClick={handleOpenDataModal}>
+              🗑 데이터 정리
+            </button>
             <button className={styles.addBtn} onClick={() => { setShowAddModal(true); setAddResult(null); }}>
               + 코드 추가
             </button>
@@ -164,6 +198,59 @@ export default function SuperAdminPage() {
           </div>
         )}
       </div>
+
+
+      {/* 데이터 정리 모달 */}
+      {showDataModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowDataModal(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>데이터 정리</h2>
+              <button className={styles.modalClose} onClick={() => setShowDataModal(false)}>✕</button>
+            </div>
+
+            <div className={styles.dataInfo}>
+              <div className={styles.dataInfoRow}>
+                <span>전체 누적 참가자 데이터</span>
+                <strong className={styles.dataCount}>{totalParticipants}개</strong>
+              </div>
+            </div>
+
+            {clearResult && (
+              <div className={styles.clearResult}>{clearResult}</div>
+            )}
+
+            <div className={styles.dataClearSection}>
+              <p className={styles.dataSectionTitle}>이벤트별 정리</p>
+              <div className={styles.eventClearList}>
+                {codeList.map(c => (
+                  <div key={c.code} className={styles.eventClearRow}>
+                    <span className={styles.eventClearCode}>{c.code}</span>
+                    <button
+                      className={styles.eventClearBtn}
+                      onClick={() => handleClearEvent(c.code)}
+                      disabled={clearingData}
+                    >
+                      정리
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button className={styles.modalCancelBtn} onClick={() => setShowDataModal(false)}>닫기</button>
+              <button
+                className={styles.clearAllBtn}
+                onClick={handleClearAll}
+                disabled={clearingData || totalParticipants === 0}
+              >
+                {clearingData ? '삭제 중...' : '전체 삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 코드 추가 모달 */}
       {showAddModal && (

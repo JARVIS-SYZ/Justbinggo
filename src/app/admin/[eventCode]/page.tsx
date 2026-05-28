@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import QRCode from 'qrcode';
 import {
   subscribeEventGame, subscribeParticipants, subscribeParticipantCount,
-  initializeEvent, startEvent, EventGame, Participant,
+  EventGame, Participant,
 } from '@/lib/gameService';
 import { LANGUAGES, T, getLang, setLang, LangCode } from '@/lib/i18n';
 import styles from './page.module.css';
@@ -20,7 +20,6 @@ export default function AdminEventPage() {
   const [count, setCount]               = useState(0);
   const [qrDataUrl, setQrDataUrl]       = useState('');
   const [gameUrl, setGameUrl]           = useState('');
-  const [isInit, setIsInit]             = useState(false);
   const [copied, setCopied]             = useState(false);
   const [lang, setLangState]            = useState<LangCode>('ko');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -48,14 +47,7 @@ export default function AdminEventPage() {
     return () => { u1(); u2(); u3(); };
   }, [eventCode, router]);
 
-  const handleInit = async () => {
-    if (!confirm(t.confirmReset)) return;
-    setIsInit(true);
-    await initializeEvent(eventCode);
-    setIsInit(false);
-  };
-
-  const handleLangChange = (code: LangCode) => {
+const handleLangChange = (code: LangCode) => {
     setLang(code);
     setLangState(code);
     setShowLangMenu(false);
@@ -112,8 +104,6 @@ export default function AdminEventPage() {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>{t.gameControl}</h2>
             <div className={styles.controlBtns}>
-              <button className="btn btn-primary" onClick={() => startEvent(eventCode)} disabled={!game || isPlaying || isFinished}>{t.start}</button>
-              <button className="btn btn-danger" onClick={handleInit} disabled={isInit}>{isInit ? t.resetting : t.reset}</button>
             </div>
           </div>
 
