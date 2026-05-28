@@ -49,7 +49,9 @@
   margin: 0 auto;
 }
 
-.header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--bg-card); border-bottom:1px solid var(--border); flex-shrink:0; }
+.header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--bg-card); border-bottom:1px solid var(--border); flex-shrink:0; gap:8px; }
+.backToList { background:none; border:1px solid var(--border); color:var(--text-muted); padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; transition:all 0.2s; white-space:nowrap; font-family:'Rajdhani',sans-serif; font-weight:600; }
+.backToList:hover { border-color:var(--border-bright); color:var(--text-primary); }
 .gameInfo { display:flex; align-items:center; gap:10px; }
 .boardNum { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--text-muted); background:var(--bg-secondary); padding:3px 8px; border-radius:4px; }
 .bingoCount { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--accent-gold); font-weight:700; }

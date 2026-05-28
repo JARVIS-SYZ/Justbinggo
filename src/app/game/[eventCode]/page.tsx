@@ -102,7 +102,7 @@ export default function GameEventPage() {
   const isPlaying      = game?.status === 'playing';
   const isFinished     = game?.status === 'finished';
   const completedLines = board.length ? findCompletedLines(board, markedNumbers) : [];
-  const canFinish      = !isFinished && completedLines.length >= 1 && !finished;
+  const canFinish      = completedLines.length >= 1 && !finished;
   const completedCells = new Set(completedLines.flat());
   const iLost          = isFinished && game?.winner !== sessionId;
 
@@ -181,6 +181,14 @@ export default function GameEventPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
+        <button className={styles.backToList} onClick={() => {
+          localStorage.removeItem(`bingo_board_${actualEventCode}`);
+          setPhase('select');
+          setBoardIndex(null);
+          setBoard([]);
+          setMarkedNumbers([]);
+          setFinished(false);
+        }}>← Back</button>
         <div className={styles.logoSmall}>⬡ BINGO</div>
         <div className={styles.gameInfo}>
           <span className={styles.boardNum}>#{(boardIndex ?? 0) + 1}</span>
