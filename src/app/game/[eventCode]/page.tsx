@@ -236,7 +236,12 @@ export default function GameEventPage() {
                   onClick={() => handleCellClick(num)}
                 >
                   {showX ? (
-                    <span className={styles.xMark}>×</span>
+                    <div className={styles.xMark}>
+                      <svg viewBox="0 0 40 40" className={styles.xSvg}>
+                        <line x1="6" y1="6" x2="34" y2="34" />
+                        <line x1="34" y1="6" x2="6" y2="34" />
+                      </svg>
+                    </div>
                   ) : (
                     <>
                       <span className={styles.cellNum}>{num}</span>
