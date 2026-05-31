@@ -95,10 +95,16 @@ export default function GameEventPage() {
 
   const handleFinish = async () => {
     if (!canFinish || finishing) return;
-    winnerReported.current = true;
+    if (!actualEventCode || !sessionId || boardIndex === null) return;
     setFinishing(true);
-    setFinished(true);
-    await setEventWinner(actualEventCode, sessionId, boardIndex!);
+    try {
+      setFinished(true);
+      await setEventWinner(actualEventCode, sessionId, boardIndex);
+    } catch (e) {
+      // 실패 시 상태 복구
+      setFinished(false);
+      setFinishing(false);
+    }
   };
 
   const isPlaying      = game?.status === 'playing';
