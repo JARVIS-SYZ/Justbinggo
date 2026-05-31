@@ -104,7 +104,7 @@ export default function GameEventPage() {
   const isPlaying      = game?.status === 'playing';
   const isFinished     = game?.status === 'finished';
   const completedLines = board.length ? findCompletedLines(board, markedNumbers) : [];
-  const canFinish      = completedLines.length >= 1 && !finished;
+  const canFinish      = (completedLines.length >= 1 || markedNumbers.length >= 5) && !finished;
   const completedCells = new Set(completedLines.flat());
   const iLost          = isFinished && game?.winner !== sessionId;
 
