@@ -274,7 +274,7 @@ export default function GameEventPage() {
         >
           {finished ? 'Done' : canFinish ? '🎉 FINISH' : isPlaying ? 'In Progress' : 'Waiting'}
         </button>
-        {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>Complete 1 line to activate</p>}
+        {!canFinish && isPlaying && !finished && <p className={styles.finishHint}>Mark 5 numbers or complete a line</p>}
       </div>
     </div>
   );
