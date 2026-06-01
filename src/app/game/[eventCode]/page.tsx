@@ -200,13 +200,21 @@ export default function GameEventPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backToList} onClick={() => {
+        <button className={styles.backToList} onClick={async () => {
           localStorage.removeItem(`bingo_board_${actualEventCode}`);
+          // Firebase 마킹 데이터도 초기화
+          if (actualEventCode && sessionId) {
+            const { ref: fbRef, set } = await import('firebase/database');
+            const { db } = await import('@/lib/firebase');
+            await set(fbRef(db, `participants/${actualEventCode}/${sessionId}/markedNumbers`), []);
+          }
           setPhase('select');
           setBoardIndex(null);
           setBoard([]);
           setMarkedNumbers([]);
           setFinished(false);
+          setFinishing(false);
+          setSelectedPreview(null);
         }}>← Back</button>
         <div className={styles.logoSmall}>⬡ BINGO</div>
         <div className={styles.gameInfo}>
