@@ -7,7 +7,7 @@
 /* ══════════════════════════════════════
    빙고판 선택 화면 (카드 목록) - 스크롤 가능
 ══════════════════════════════════════ */
-.selectContainer { min-height:100vh; display:flex; flex-direction:column; background:var(--bg-primary); }
+.selectContainer { min-height:100vh; display:flex; flex-direction:column; background:var(--bg-primary); max-width:480px; margin:0 auto; }
 .selectHeader { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg-card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
 .logoSmall { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:900; color:var(--accent-blue); letter-spacing:0.2em; }
 .eventCodeBadge { background:rgba(59,130,246,0.15); border:1px solid var(--accent-blue); color:var(--accent-blue); padding:4px 12px; border-radius:20px; font-family:'Orbitron',sans-serif; font-size:12px; letter-spacing:0.1em; }
